@@ -1,10 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main-layout}"
+      lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Dashboard Bác sĩ</title>
 </head>
 <body>
+
+<main class="page-content" layout:fragment="content">
+
+    <h2>Chào mừng Bác sĩ</h2>
+
+    <!-- Thống kê -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+        <div class="card">
+            <p class="text-muted">Lịch hẹn hôm nay</p>
+            <h3 th:text="${todayAppointments} ?: '0'">0</h3>
+        </div>
+        <div class="card">
+            <p class="text-muted">Bệnh nhân chờ khám</p>
+            <h3 th:text="${pendingPatients} ?: '0'">0</h3>
+        </div>
+        <div class="card">
+            <p class="text-muted">Đã khám hôm nay</p>
+            <h3 th:text="${completedToday} ?: '0'">0</h3>
+        </div>
+    </div>
+
+    <!-- Bảng lịch hẹn -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Lịch hẹn hôm nay</h4>
+            <input type="text" class="form-control" placeholder="Tìm bệnh nhân..."
+                   style="max-width: 250px;">
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Bệnh nhân</th>
+                    <th>Giờ hẹn</th>
+                    <th>Lý do khám</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="apt : ${appointments}">
+                    <td th:text="${apt.patientName}">Nguyễn Văn A</td>
+                    <td th:text="${apt.time}">09:00</td>
+                    <td th:text="${apt.reason}">Khám tổng quát</td>
+                    <td>
+                        <span class="badge badge-warning" th:text="${apt.status}">Chờ khám</span>
+                    </td>
+                </tr>
+                <tr th:if="${appointments == null or #lists.isEmpty(appointments)}">
+                    <td colspan="4" class="text-center text-muted">Chưa có lịch hẹn hôm nay</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
 
 </body>
 </html>
