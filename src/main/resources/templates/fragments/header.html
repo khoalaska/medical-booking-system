@@ -1,10 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <body>
+
+<header class="hospital-header" th:fragment="header">
+    <div class="hospital-header-inner">
+        <a th:href="@{/}" class="hospital-logo">
+            <span class="hospital-logo-icon">+</span>
+            <span class="hospital-logo-text">
+                <strong>MEDICAL BOOKING SYSTEM</strong>
+                <small>Online Appointment Booking</small>
+            </span>
+        </a>
+
+        <div class="hospital-hotline">
+            <span>Hotline:</span>
+            <strong>1900 6422</strong>
+        </div>
+    </div>
+</header>
 
 </body>
 </html>

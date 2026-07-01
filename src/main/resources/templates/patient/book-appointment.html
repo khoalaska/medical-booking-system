@@ -1,10 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/public-layout}"
+      lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Đặt lịch khám</title>
 </head>
 <body>
+
+<main layout:fragment="content" class="booking-page">
+    <div class="booking-container">
+        <div class="booking-title-row">
+            <div>
+                <h1>Đặt lịch khám</h1>
+                <p>Bước 1 / 2 — Chọn chuyên khoa bạn muốn khám</p>
+            </div>
+        </div>
+
+        <div class="booking-steps">
+            <div class="booking-step" th:classappend="${selectedDepartment == null} ? 'active' : 'done'">
+                <span>1</span>
+                Chọn chuyên khoa
+            </div>
+            <div class="booking-step-line"></div>
+            <div class="booking-step" th:classappend="${selectedDepartment != null} ? 'active'">
+                <span>2</span>
+                Chọn bác sĩ &amp; đặt lịch
+            </div>
+        </div>
+
+        <div class="booking-actions" th:if="${selectedDepartment != null}">
+            <a th:href="@{/patients/book-appointment}" class="btn btn-secondary">
+                ← Chọn lại chuyên khoa
+            </a>
+        </div>
+
+        <div class="department-grid" th:if="${selectedDepartment == null}">
+            <div class="department-card" th:each="department : ${departments}">
+                <div class="department-icon">+</div>
+                <h2 th:text="${department.name}">Khoa Nội</h2>
+                <p th:text="${department.description}">Khám và điều trị các bệnh nội khoa</p>
+                <a th:href="@{/patients/book-appointment(departmentId=${department.id})}">
+                    Chọn khoa này →
+                </a>
+            </div>
+
+            <div class="empty-card" th:if="${#lists.isEmpty(departments)}">
+                Chưa có chuyên khoa nào trong hệ thống.
+            </div>
+        </div>
+
+        <div class="booking-detail" th:if="${selectedDepartment != null}">
+            <div class="booking-sidebar">
+                <h2>Bác sĩ chuyên khoa</h2>
+
+                <a class="doctor-card"
+                   th:each="doctor : ${doctors}"
+                   th:classappend="${selectedDoctor != null && selectedDoctor.id == doctor.id} ? 'selected'"
+                   th:href="@{/patients/book-appointment(departmentId=${selectedDepartment.id}, doctorId=${doctor.id})}">
+                    <div class="doctor-avatar" th:text="${#strings.substring(doctor.user.fullName, 0, 1)}">B</div>
+                    <div>
+                        <strong th:text="${doctor.user.fullName}">BS. Nguyễn Văn A</strong>
+                        <span th:text="${doctor.specialization}">Nội tổng quát</span>
+                        <small th:text="${doctor.experienceYears + ' năm kinh nghiệm'}">10 năm kinh nghiệm</small>
+                    </div>
+                </a>
+            </div>
+
+            <div class="booking-main">
+                <div class="selected-doctor-box" th:if="${selectedDoctor != null}">
+                    <div class="doctor-avatar big" th:text="${#strings.substring(selectedDoctor.user.fullName, 0, 1)}">B</div>
+                    <div>
+                        <h2 th:text="${selectedDoctor.user.fullName}">BS. Nguyễn Văn A</h2>
+                        <p th:text="${selectedDoctor.specialization}">Nội tổng quát</p>
+                    </div>
+                </div>
+
+                <div class="booking-panel" th:if="${selectedDoctor != null}">
+                    <h3>Chọn ngày khám</h3>
+                    <form class="date-form" th:action="@{/patients/book-appointment}" method="get">
+                        <input type="hidden" name="departmentId" th:value="${selectedDepartment.id}">
+                        <input type="hidden" name="doctorId" th:value="${selectedDoctor.id}">
+
+                        <input class="form-control"
+                               type="date"
+                               name="appointmentDate"
+                               th:value="${appointmentDate}"
+                               th:min="${minDate}"
+                               th:max="${maxDate}"
+                               required>
+
+                        <button type="submit" class="btn btn-primary">Chọn ngày</button>
+                    </form>
+
+                    <p class="date-help" th:if="${!#lists.isEmpty(availableDates)}">
+                        Vui lòng chọn ngày trong khoảng lịch làm việc của bác sĩ.
+                    </p>
+                    <p class="date-help" th:if="${#lists.isEmpty(availableDates)}">
+                        Bác sĩ này chưa có lịch làm việc.
+                    </p>
+                </div>
+
+                <div class="booking-panel" th:if="${appointmentDate != null}">
+                    <h3>Chọn ca khám</h3>
+                    <div class="choice-list">
+                        <a class="shift-card"
+                           th:each="schedule : ${availableShifts}"
+                           th:classappend="${selectedShift != null && selectedShift == schedule.shift} ? 'selected'"
+                           th:href="@{/patients/book-appointment(departmentId=${selectedDepartment.id}, doctorId=${selectedDoctor.id}, appointmentDate=${appointmentDate}, shift=${schedule.shift})}">
+                            <strong th:text="${schedule.shift == T(fpt.medical.enums.ShiftType).MORNING ? 'Ca sáng' : (schedule.shift == T(fpt.medical.enums.ShiftType).AFTERNOON ? 'Ca chiều' : 'Ca tối')}">Ca sáng</strong>
+                            <span th:text="${schedule.shift == T(fpt.medical.enums.ShiftType).MORNING ? '08:00 - 11:00' : (schedule.shift == T(fpt.medical.enums.ShiftType).AFTERNOON ? '14:00 - 17:00' : '18:00 - 20:00')}">08:00 - 11:00</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="booking-panel" th:if="${selectedShift != null}">
+                    <h3>Chọn khung giờ</h3>
+                    <div class="choice-list">
+                        <a class="choice-item"
+                           th:each="timeSlot : ${availableTimeSlots}"
+                           th:classappend="${selectedTimeSlot != null && selectedTimeSlot.id == timeSlot.id} ? 'selected' : (${!timeSlot.bookable} ? 'disabled')"
+                           th:href="${timeSlot.bookable} ? @{/patients/book-appointment(departmentId=${selectedDepartment.id}, doctorId=${selectedDoctor.id}, appointmentDate=${appointmentDate}, shift=${selectedShift}, timeSlotId=${timeSlot.id})} : '#'">
+                            <strong th:text="${#temporals.format(timeSlot.startTime, 'HH:mm') + ' - ' + #temporals.format(timeSlot.endTime, 'HH:mm')}">08:00 - 09:00</strong>
+                            <small th:text="${timeSlot.remainingCapacity + '/' + timeSlot.maxCapacity + ' slot còn'}">3/3 slot còn</small>
+                        </a>
+                    </div>
+                </div>
+
+                <form class="booking-panel confirm-form" th:if="${selectedTimeSlot != null}" method="post" action="#">
+                    <h3>Xác nhận đặt lịch</h3>
+
+                    <div class="booking-summary">
+                        <p><strong>Bác sĩ:</strong> <span th:text="${selectedDoctor.user.fullName}">BS. Nguyễn Văn A</span></p>
+                        <p><strong>Khoa:</strong> <span th:text="${selectedDepartment.name}">Khoa Nội</span></p>
+                        <p><strong>Ngày:</strong> <span th:text="${appointmentDate}">2026-07-02</span></p>
+                        <p><strong>Giờ:</strong> <span th:text="${#temporals.format(selectedTimeSlot.startTime, 'HH:mm') + ' - ' + #temporals.format(selectedTimeSlot.endTime, 'HH:mm')}">08:00 - 09:00</span></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="notes">Triệu chứng / Ghi chú</label>
+                        <textarea class="form-control" id="notes" name="notes" placeholder="Mô tả triệu chứng hoặc lý do khám..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Xác nhận đặt lịch</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
 
 </body>
 </html>
