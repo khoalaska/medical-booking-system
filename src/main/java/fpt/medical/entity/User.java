@@ -28,8 +28,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(length = 20)
     private String phone;
 
+    @Column(length = 500)
     private String avatarUrl;
 
     @Column(nullable = false)

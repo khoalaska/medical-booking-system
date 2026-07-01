@@ -1,0 +1,10 @@
+<aside class="sidebar" th:fragment="sidebar">
+    <div class="sidebar-logo"><span>Medical Booking - Admin</span></div>
+    <nav class="sidebar-nav">
+        <a th:href="@{/admin/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? 'active'">Dashboard</a>
+        <a th:href="@{/doctors}" th:classappend="${activeMenu == 'doctors'} ? 'active'">Quản lý Bác sĩ</a>
+        <a th:href="@{/departments}" th:classappend="${activeMenu == 'departments'} ? 'active'">Quản lý Phòng ban</a>
+        <a th:href="@{/schedules}" th:classappend="${activeMenu == 'schedules'} ? 'active'">Lịch làm việc</a>
+    </nav>
+    <div class="sidebar-footer"><a th:href="@{/logout}">Đăng xuất</a></div>
+</aside>

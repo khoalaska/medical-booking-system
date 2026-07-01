@@ -4,9 +4,7 @@ import fpt.medical.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "appointments")
@@ -29,11 +27,9 @@ public class Appointment {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
-    @Column(nullable = false)
-    private LocalDate appointmentDate;
-
-    @Column(nullable = false)
-    private LocalTime appointmentTime;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "time_slot_id", nullable = false)
+    private TimeSlot timeSlot;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)

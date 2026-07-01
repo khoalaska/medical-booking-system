@@ -1,10 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      th:with="activeMenu='departments'">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title th:text="${pageTitle}">Thêm/Sửa phòng ban</title>
 </head>
 <body>
+
+<main class="page-content" layout:fragment="content">
+    <div class="card" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 th:text="${pageTitle}" style="margin-bottom: 20px;">Thêm/Sửa phòng ban</h2>
+
+        <!-- Error Message Alert -->
+        <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}" style="margin-bottom: 20px; color: red;">
+            Đã xảy ra lỗi.
+        </div>
+
+        <form th:action="@{/departments/save}" th:object="${department}" method="post">
+            <!-- Hidden field for ID -->
+            <input type="hidden" th:field="*{id}" />
+
+            <!-- Department Name -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="name" style="display: block; font-weight: bold; margin-bottom: 5px;">Tên phòng ban *</label>
+                <input type="text" id="name" th:field="*{name}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+                <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;">
+                    Lỗi tên phòng ban
+                </span>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="description" style="display: block; font-weight: bold; margin-bottom: 5px;">Mô tả</label>
+                <textarea id="description" th:field="*{description}" class="form-control" rows="5" style="width: 100%; padding: 8px; box-sizing: border-box;"></textarea>
+            </div>
+
+            <!-- Image URL -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="imageUrl" style="display: block; font-weight: bold; margin-bottom: 5px;">URL ảnh (tùy chọn)</label>
+                <input type="text" id="imageUrl" th:field="*{imageUrl}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" />
+                
+                <!-- Preview image -->
+                <div th:if="${department.imageUrl != null && !#strings.isEmpty(department.imageUrl)}" style="margin-top: 10px;">
+                    <p style="font-size: 13px; margin: 0 0 5px 0; color: #555;">Ảnh xem trước:</p>
+                    <img th:src="${department.imageUrl}" alt="Preview" style="max-width: 150px; max-height: 150px; border-radius: 4px; border: 1px solid #ccc; object-fit: cover;" />
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">Lưu</button>
+                <a th:href="@{/departments}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit; box-sizing: border-box;">Hủy</a>
+            </div>
+        </form>
+    </div>
+</main>
 
 </body>
 </html>

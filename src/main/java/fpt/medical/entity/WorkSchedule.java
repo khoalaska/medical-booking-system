@@ -4,8 +4,9 @@ import fpt.medical.enums.ShiftType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Table(name = "work_schedules")
@@ -27,12 +28,6 @@ public class WorkSchedule {
     @Column(nullable = false)
     private LocalDate workDate;
 
-    @Column(nullable = false)
-    private LocalTime startTime;
-
-    @Column(nullable = false)
-    private LocalTime endTime;
-
     @Builder.Default
     private boolean available = true;
 
@@ -40,4 +35,8 @@ public class WorkSchedule {
     @Column(length = 20)
     @Builder.Default
     private ShiftType shift = ShiftType.MORNING;
+
+    @OneToMany(mappedBy = "workSchedule", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<TimeSlot> timeSlots = new ArrayList<>();
 }

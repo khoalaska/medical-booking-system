@@ -5,10 +5,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title layout:title-pattern="$CONTENT_TITLE - Medical Booking">Medical Booking System</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <title layout:title-pattern="$CONTENT_TITLE - Medical Booking">Medical Booking</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=3)}">
 </head>
 <body>
-<section th:replace="fragments/header"></section>
+
+<div class="public-wrapper">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main layout:fragment="content">
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+
 </body>
 </html>
