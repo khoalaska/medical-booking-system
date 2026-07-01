@@ -1,10 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Danh sách bác sĩ</title>
+    <link rel="stylesheet" th:href="@{/css/patient.css}" href="/css/patient.css">
 </head>
 <body>
+<h2>Danh sách bác sĩ</h2>
 
+<table>
+    <thead>
+    <tr>
+        <th>Tên bác sĩ</th>
+        <th>Chuyên khoa</th>
+        <th>Kinh nghiệm</th>
+        <th>Thao tác</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="doctor : ${doctors}">
+        <td th:text="${doctor.fullName}">BS. Nguyễn Văn An</td>
+        <td th:text="${doctor.departmentName}">Nội tổng quát</td>
+        <td th:text="${doctor.experience}">8 năm</td>
+        <td><a th:href="@{/patients/book-appointment(doctorId=${doctor.id})}" href="#">Đặt lịch</a></td>
+    </tr>
+
+    <tr th:if="${doctors == null}">
+        <td>BS. Nguyễn Văn An</td>
+        <td>Nội tổng quát</td>
+        <td>8 năm</td>
+        <td><a href="#">Đặt lịch</a></td>
+    </tr>
+    <tr th:if="${doctors == null}">
+        <td>BS. Trần Thị Bình</td>
+        <td>Nhi khoa</td>
+        <td>6 năm</td>
+        <td><a href="#">Đặt lịch</a></td>
+    </tr>
+    <tr th:if="${doctors == null}">
+        <td>BS. Lê Minh Quân</td>
+        <td>Tim mạch</td>
+        <td>10 năm</td>
+        <td><a href="#">Đặt lịch</a></td>
+    </tr>
+    </tbody>
+</table>
 </body>
 </html>
