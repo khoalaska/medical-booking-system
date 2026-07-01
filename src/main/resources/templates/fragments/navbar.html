@@ -1,10 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
 <body>
+
+<nav class="navbar" th:fragment="navbar">
+    <div class="navbar-left">
+        <span class="welcome-text">Xin chào</span>
+        <span class="welcome-name">Bác sĩ</span>
+    </div>
+    <div class="navbar-right">
+        <div class="search-box">
+            <input type="text" placeholder="Tìm kiếm...">
+        </div>
+    </div>
+</nav>
 
 </body>
 </html>

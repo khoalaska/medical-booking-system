@@ -1,10 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
 <body>
+
+<aside class="sidebar" th:fragment="sidebar">
+
+    <div class="sidebar-logo">
+        <span>Medical Booking</span>
+    </div>
+
+    <!-- Menu: thêm sec:authorize khi có Security -->
+    <nav class="sidebar-nav">
+        <a th:href="@{/doctor/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? 'active'">Dashboard</a>
+        <a th:href="@{/doctor/schedule}" th:classappend="${activeMenu == 'schedule'} ? 'active'">Lịch khám</a>
+        <a th:href="@{/doctor/patient-history}" th:classappend="${activeMenu == 'patient-history'} ? 'active'">Hồ sơ Bệnh nhân</a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a th:href="@{/logout}">Đăng xuất</a>
+    </div>
+
+</aside>
 
 </body>
 </html>
