@@ -45,7 +45,7 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
         } else if (isDoctor) {
             response.sendRedirect(contextPath + "/doctor/dashboard");
         } else if (isPatient) {
-            response.sendRedirect(contextPath + "/");
+            response.sendRedirect(contextPath + "/patients/book-appointment");
         } else {
             response.sendRedirect(contextPath + "/auth/login?error");
         }
