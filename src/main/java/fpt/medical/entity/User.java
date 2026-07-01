@@ -22,12 +22,14 @@ public class User {
     @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true)
+    @Column(length = 255)
     private String email;
+
 
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false, unique = true, length = 20)
     private String phone;
 
     private String avatarUrl;

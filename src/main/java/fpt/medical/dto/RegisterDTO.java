@@ -8,17 +8,21 @@ import lombok.Data;
 @Data
 public class RegisterDTO {
 
-    @NotBlank
+    //@NotBlank
+    private String phone;
+
+    //@NotBlank
     private String fullName;
 
-    @NotBlank
-    @Email
-    private String email;
+   // @NotBlank
+   // @Email
+    //private String email;
 
-    @NotBlank
-    @Size(min = 6, message = "Password must be at least 6 characters")
+   // @NotBlank
+    //@Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    @NotBlank
+    //@NotBlank
     private String confirmPassword;
+
 }

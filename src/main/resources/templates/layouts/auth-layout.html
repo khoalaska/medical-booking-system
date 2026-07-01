@@ -1,10 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Booking</title>
+
+    <!-- CSS chung cho login/register -->
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
 </head>
+
 <body>
+
+<div class="auth-page">
+
+    <!-- Link về trang chủ -->
+    <div class="auth-top">
+        <a th:href="@{/}" class="home-link">
+            Trang chủ
+        </a>
+    </div>
+
+    <!-- Nội dung login/register sẽ được nhét vào đây -->
+    <div class="auth-main" layout:fragment="content">
+    </div>
+
+    <!-- Footer -->
+    <footer class="auth-footer">
+        © 2026 Medical Booking System. All rights reserved.
+    </footer>
+
+</div>
 
 </body>
 </html>
