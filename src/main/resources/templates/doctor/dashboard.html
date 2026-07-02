@@ -10,12 +10,14 @@
 
 <main class="page-content" layout:fragment="content">
 
-    <h2>Chào mừng Bác sĩ</h2>
 
-    <!-- Thống kê -->
+    <h2>Chào mừng Bác sĩ <span th:text="${doctorName}">Nguyễn Văn A</span></h2>
+
+
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
         <div class="card">
             <p class="text-muted">Lịch hẹn hôm nay</p>
+
             <h3 th:text="${todayAppointments} ?: '0'">0</h3>
         </div>
         <div class="card">
@@ -28,7 +30,7 @@
         </div>
     </div>
 
-    <!-- Bảng lịch hẹn -->
+
     <div class="card mt-4">
         <div class="card-header">
             <h4 class="card-title">Lịch hẹn hôm nay</h4>
@@ -37,25 +39,49 @@
         </div>
         <table class="data-table">
             <thead>
-                <tr>
-                    <th>Bệnh nhân</th>
-                    <th>Giờ hẹn</th>
-                    <th>Lý do khám</th>
-                    <th>Trạng thái</th>
-                </tr>
+            <tr>
+                <th>Bệnh nhân</th>
+                <th>Giờ hẹn</th>
+                <th>Lý do khám</th>
+                <th>Trạng thái</th>
+            </tr>
             </thead>
             <tbody>
-                <tr th:each="apt : ${appointments}">
-                    <td th:text="${apt.patientName}">Nguyễn Văn A</td>
-                    <td th:text="${apt.time}">09:00</td>
-                    <td th:text="${apt.reason}">Khám tổng quát</td>
-                    <td>
-                        <span class="badge badge-warning" th:text="${apt.status}">Chờ khám</span>
-                    </td>
-                </tr>
-                <tr th:if="${appointments == null or #lists.isEmpty(appointments)}">
-                    <td colspan="4" class="text-center text-muted">Chưa có lịch hẹn hôm nay</td>
-                </tr>
+            <tr th:each="apt : ${appointments}">
+
+                <td th:text="${apt.patient.user.fullName}">Nguyễn Văn A</td>
+
+
+                <td th:text="${apt.timeSlot.startTime}">09:00</td>
+
+                <td th:text="${apt.notes} ?: 'Không có ghi chú'">Khám tổng quát</td>
+
+                <td>
+                        <!--
+                            th:classappend = thêm class CSS tùy theo giá trị status
+                            PENDING   → badge-warning (vàng)
+                            CONFIRMED → badge-info    (xanh dương)
+                            COMPLETED → badge-success (xanh lá)
+                            CANCELLED → badge-danger  (đỏ)
+                        -->
+                        <span class="badge"
+                              th:classappend="${apt.status.name() == 'PENDING'} ? 'badge-warning'
+                                           : (${apt.status.name() == 'CONFIRMED'} ? 'badge-info'
+                                           : (${apt.status.name() == 'COMPLETED'} ? 'badge-success'
+                                           : 'badge-danger'))"
+                              th:text="${apt.status.name() == 'PENDING'} ? 'Chờ xác nhận'
+                                     : (${apt.status.name() == 'CONFIRMED'} ? 'Đã xác nhận'
+                                     : (${apt.status.name() == 'COMPLETED'} ? 'Đã khám'
+                                     : 'Đã hủy'))">
+                            Chờ khám
+                        </span>
+                </td>
+            </tr>
+            <tr th:if="${appointments == null or #lists.isEmpty(appointments)}">
+                <td colspan="4" class="text-center text-muted">
+                    Chưa có lịch hẹn hôm nay
+                </td>
+            </tr>
             </tbody>
         </table>
     </div>

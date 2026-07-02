@@ -18,4 +18,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
     @Query("select d from Doctor d join fetch d.user left join fetch d.department where d.id = :id")
     Doctor findByIdWithUser(@Param("id") Long id);
+
+    //Khoa
+    @Query("SELECT d FROM Doctor d WHERE d.user.id = :userId")
+    Doctor findByUserId(@Param("userId") Long userId);
 }

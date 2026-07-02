@@ -33,13 +33,13 @@ public class CustomUserDetails implements UserDetails {
         return authorities;
     }
 
-    // Lấy mật khẩu trong DB
+
     @Override
     public String getPassword() {
         return user.getPassword();
     }
 
-    // Username của mình chính là số điện thoại
+
     @Override
     public String getUsername() {
         return user.getPhone();

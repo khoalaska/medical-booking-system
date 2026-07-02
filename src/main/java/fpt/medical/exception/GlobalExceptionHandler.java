@@ -36,6 +36,17 @@ public class GlobalExceptionHandler {
         return mav;
     }
 
+    // Xử lý lỗi không tìm thấy static resource (ví dụ favicon.ico)
+    // Dùng log.debug thay vì log.error để không gây hoang mang khi đọc console
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ModelAndView handleNoResource(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        log.debug("Static resource not found: {}", ex.getMessage());
+        ModelAndView mav = new ModelAndView("error/404");
+        mav.setStatus(HttpStatus.NOT_FOUND);
+        mav.addObject("message", ex.getMessage());
+        return mav;
+    }
+
     @ExceptionHandler(Exception.class)
     public ModelAndView handleGeneral(Exception ex) {
         log.error("Unexpected error", ex);

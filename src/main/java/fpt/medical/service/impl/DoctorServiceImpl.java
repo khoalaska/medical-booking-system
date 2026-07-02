@@ -33,4 +33,15 @@ public class DoctorServiceImpl implements DoctorService {
         }
         return doctor;
     }
+
+    //Khoa
+    @Override
+    @Transactional(readOnly = true)
+    public Doctor getByUserId(Long userId) {
+        Doctor doctor = doctorRepository.findByUserId(userId);
+        if (doctor == null) {
+            throw new ResourceNotFoundException("Doctor", "userId", userId);
+        }
+        return doctor;
+    }
 }

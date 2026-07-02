@@ -8,4 +8,7 @@ public interface DoctorService {
     //Yen
     List<Doctor> getDoctorsByDepartment(Long departmentId);
     Doctor getById(Long id);
+
+    //Khoa
+    Doctor getByUserId(Long userId);
 }
