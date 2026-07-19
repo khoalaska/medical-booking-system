@@ -44,7 +44,9 @@ public class MedicalRecord {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "medicalRecord", cascade = CascadeType.ALL)
+    // orphanRemoval = true: when we edit a record and remove a prescription from this list,
+    // that prescription row is also deleted from the database.
+    @OneToMany(mappedBy = "medicalRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Prescription> prescriptions = new ArrayList<>();
 }

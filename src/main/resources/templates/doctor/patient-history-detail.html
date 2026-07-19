@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main-layout}"
+      lang="vi">
+<head>
+    <title>Lịch sử khám bệnh</title>
+</head>
+<body>
+
+<!-- Main content injected into the shared layout -->
+<main class="page-content" layout:fragment="content">
+
+    <h2>Lịch sử khám bệnh</h2>
+
+    <!-- Patient information header -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Thông tin bệnh nhân</h4>
+        </div>
+
+        <p><strong>Họ tên:</strong>
+            <span th:text="${patient.user.fullName}">Nguyễn Văn A</span></p>
+
+        <p><strong>Ngày sinh:</strong>
+            <span th:if="${patient.dateOfBirth != null}"
+                  th:text="${#temporals.format(patient.dateOfBirth, 'dd/MM/yyyy')}">01/01/1990</span>
+            <span th:unless="${patient.dateOfBirth != null}">Chưa cập nhật</span>
+        </p>
+
+        <p><strong>Giới tính:</strong>
+            <span th:if="${patient.gender != null and patient.gender.name() == 'MALE'}">Nam</span>
+            <span th:if="${patient.gender != null and patient.gender.name() == 'FEMALE'}">Nữ</span>
+            <span th:if="${patient.gender != null and patient.gender.name() == 'OTHER'}">Khác</span>
+            <span th:if="${patient.gender == null}">Chưa cập nhật</span>
+        </p>
+
+        <p><strong>Nhóm máu:</strong>
+            <span th:if="${patient.bloodType != null}" th:text="${patient.bloodType}">O+</span>
+            <span th:unless="${patient.bloodType != null}">Chưa cập nhật</span>
+        </p>
+    </div>
+
+    <!-- Empty state when this doctor has no record for the patient -->
+    <div th:if="${records == null or #lists.isEmpty(records)}" class="alert alert-info mt-4">
+        Chưa có lịch sử khám cho bệnh nhân này.
+    </div>
+
+    <!-- One card for each past visit, newest first -->
+    <div class="card mt-4" th:each="record : ${records}">
+
+        <!-- Visit date and time -->
+        <div class="card-header">
+            <h4 class="card-title">
+                Ngày khám:
+                <span th:text="${#temporals.format(record.appointment.timeSlot.workSchedule.workDate, 'dd/MM/yyyy')}">01/01/2025</span>
+                (<span th:text="${#temporals.format(record.appointment.timeSlot.startTime, 'HH:mm')}">08:00</span>
+                -
+                <span th:text="${#temporals.format(record.appointment.timeSlot.endTime, 'HH:mm')}">09:00</span>)
+            </h4>
+        </div>
+
+        <!-- Doctor who performed this examination (the history now includes every doctor) -->
+        <p><strong>Bác sĩ khám:</strong> <span th:text="${record.doctor.user.fullName}">BS. Nguyễn Văn An</span></p>
+
+        <!-- Diagnosis details -->
+        <p><strong>Chẩn đoán:</strong> <span th:text="${record.diagnosis}">...</span></p>
+        <p><strong>Hướng điều trị:</strong>
+            <span th:if="${record.treatment != null}" th:text="${record.treatment}">...</span>
+            <span th:unless="${record.treatment != null}">Không có</span>
+        </p>
+        <p><strong>Ghi chú:</strong>
+            <span th:if="${record.notes != null}" th:text="${record.notes}">...</span>
+            <span th:unless="${record.notes != null}">Không có</span>
+        </p>
+
+        <!-- Prescriptions of this visit -->
+        <h5 class="mt-3">Đơn thuốc</h5>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Tên thuốc</th>
+                <th>Liều dùng</th>
+                <th>Số ngày</th>
+                <th>Hướng dẫn</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- One row for each prescription of this visit -->
+            <tr th:each="prescription : ${record.prescriptions}">
+                <td th:text="${prescription.medicineName}">Paracetamol</td>
+                <td th:text="${prescription.dosage}">1 viên/lần</td>
+                <td th:text="${prescription.durationDays}">3</td>
+                <td th:text="${prescription.instructions}">Uống sau ăn</td>
+            </tr>
+            <!-- Empty state when the visit has no prescription -->
+            <tr th:if="${record.prescriptions == null or #lists.isEmpty(record.prescriptions)}">
+                <td colspan="4" class="text-center text-muted">Không có đơn thuốc</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Back to the patient list -->
+    <div class="mt-4">
+        <a th:href="@{/doctor/patient-history}" class="btn btn-secondary">Quay lại danh sách</a>
+    </div>
+
+</main>
+
+</body>
+</html>

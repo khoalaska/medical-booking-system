@@ -1,7 +1,5 @@
 package fpt.medical.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 @Data
@@ -9,14 +7,16 @@ public class PrescriptionDTO {
 
     private Long medicalRecordId;
 
-    @NotBlank
+    // Name of the medicine (a row is only saved when this field is filled in)
     private String medicineName;
 
-    @NotBlank
+    // How to take the medicine, for example "1 viên/lần, 2 lần/ngày"
     private String dosage;
 
-    @Positive
-    private int durationDays;
+    // Number of days to take the medicine.
+    // We use Integer (not int) so an empty row can stay null instead of causing a binding error.
+    private Integer durationDays;
 
+    // Extra instructions, for example "uống sau khi ăn"
     private String instructions;
 }

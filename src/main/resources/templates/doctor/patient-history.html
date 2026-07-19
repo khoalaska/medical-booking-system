@@ -1,10 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main-layout}"
+      lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Hồ sơ bệnh nhân</title>
 </head>
 <body>
+
+<!-- Main content injected into the shared layout -->
+<main class="page-content" layout:fragment="content">
+
+    <h2>Hồ sơ bệnh nhân</h2>
+
+    <!-- Search box: find a patient by name; the form submits by GET so the keyword stays in the URL -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Tìm bệnh nhân</h4>
+        </div>
+        <form method="get" th:action="@{/doctor/patient-history}" class="date-form">
+            <input type="text" name="keyword" class="form-control"
+                   placeholder="Nhập tên bệnh nhân..." th:value="${keyword}">
+            <button type="submit" class="btn btn-primary">Tìm</button>
+        </form>
+    </div>
+
+    <!-- List of patients who have any examination history at the clinic -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Danh sách bệnh nhân đã từng khám</h4>
+        </div>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Họ tên</th>
+                <th>Ngày sinh</th>
+                <th>Giới tính</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- One row for each patient on the current page -->
+            <tr th:each="patient : ${patientPage.content}">
+
+                <!-- Patient full name -->
+                <td th:text="${patient.user.fullName}">Nguyễn Văn A</td>
+
+                <!-- Date of birth -->
+                <td>
+                    <span th:if="${patient.dateOfBirth != null}"
+                          th:text="${#temporals.format(patient.dateOfBirth, 'dd/MM/yyyy')}">01/01/1990</span>
+                    <span th:unless="${patient.dateOfBirth != null}">Chưa cập nhật</span>
+                </td>
+
+                <!-- Gender shown in Vietnamese; each case is checked explicitly -->
+                <td>
+                    <span th:if="${patient.gender != null and patient.gender.name() == 'MALE'}">Nam</span>
+                    <span th:if="${patient.gender != null and patient.gender.name() == 'FEMALE'}">Nữ</span>
+                    <span th:if="${patient.gender != null and patient.gender.name() == 'OTHER'}">Khác</span>
+                    <span th:if="${patient.gender == null}">Chưa cập nhật</span>
+                </td>
+
+                <!-- Action: open this patient's examination history -->
+                <td>
+                    <a th:href="@{/doctor/patient-history/{id}(id=${patient.id})}"
+                       class="btn btn-primary btn-sm">Xem lịch sử</a>
+                </td>
+            </tr>
+
+            <!-- Empty state when no patient matches -->
+            <tr th:if="${patientPage.empty}">
+                <td colspan="4" class="text-center text-muted">Không tìm thấy bệnh nhân nào</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination bar: only shown when there is more than one page.
+             patientPage.number is 0-based, so we show number + 1 to the user.
+             We keep the current keyword in the links so the search is not lost when changing page. -->
+        <div class="mt-4 d-flex align-center gap-2" th:if="${patientPage.totalPages > 1}">
+
+            <!-- Go to the previous page (hidden on the first page) -->
+            <a th:if="${!patientPage.first}"
+               th:href="@{/doctor/patient-history(keyword=${keyword}, page=${patientPage.number - 1})}"
+               class="btn btn-secondary btn-sm">Trang trước</a>
+
+            <!-- Current page indicator -->
+            <span class="text-muted">
+                Trang <span th:text="${patientPage.number + 1}">1</span>
+                / <span th:text="${patientPage.totalPages}">1</span>
+            </span>
+
+            <!-- Go to the next page (hidden on the last page) -->
+            <a th:if="${!patientPage.last}"
+               th:href="@{/doctor/patient-history(keyword=${keyword}, page=${patientPage.number + 1})}"
+               class="btn btn-secondary btn-sm">Trang sau</a>
+        </div>
+    </div>
+
+</main>
 
 </body>
 </html>

@@ -1,10 +1,222 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main-layout}"
+      lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Khám bệnh</title>
 </head>
 <body>
+
+<!-- Main content injected into the shared layout -->
+<main class="page-content" layout:fragment="content">
+
+    <h2>Khám bệnh và ghi hồ sơ</h2>
+
+    <!-- ============================================================
+         Patient information panel (always shown at the top)
+         ============================================================ -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Thông tin bệnh nhân</h4>
+        </div>
+
+        <p><strong>Họ tên:</strong>
+            <span th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</span></p>
+
+        <p><strong>Ngày sinh:</strong>
+            <!-- Show the birthday when it is available -->
+            <span th:if="${appointment.patient.dateOfBirth != null}"
+                  th:text="${#temporals.format(appointment.patient.dateOfBirth, 'dd/MM/yyyy')}">01/01/1990</span>
+            <span th:unless="${appointment.patient.dateOfBirth != null}">Chưa cập nhật</span>
+        </p>
+
+        <p><strong>Giới tính:</strong>
+            <!-- Show the gender in Vietnamese; each case is checked explicitly -->
+            <span th:if="${appointment.patient.gender != null and appointment.patient.gender.name() == 'MALE'}">Nam</span>
+            <span th:if="${appointment.patient.gender != null and appointment.patient.gender.name() == 'FEMALE'}">Nữ</span>
+            <span th:if="${appointment.patient.gender != null and appointment.patient.gender.name() == 'OTHER'}">Khác</span>
+            <span th:if="${appointment.patient.gender == null}">Chưa cập nhật</span>
+        </p>
+
+        <p><strong>Nhóm máu:</strong>
+            <span th:if="${appointment.patient.bloodType != null}" th:text="${appointment.patient.bloodType}">O+</span>
+            <span th:unless="${appointment.patient.bloodType != null}">Chưa cập nhật</span>
+        </p>
+
+        <p><strong>Ngày khám:</strong>
+            <span th:text="${#temporals.format(appointment.timeSlot.workSchedule.workDate, 'dd/MM/yyyy')}">01/01/2025</span>
+        </p>
+
+        <p><strong>Giờ khám:</strong>
+            <span th:text="${#temporals.format(appointment.timeSlot.startTime, 'HH:mm')}">08:00</span>
+            -
+            <span th:text="${#temporals.format(appointment.timeSlot.endTime, 'HH:mm')}">09:00</span>
+        </p>
+
+        <p><strong>Lý do khám:</strong>
+            <span th:if="${appointment.notes != null}" th:text="${appointment.notes}">Khám tổng quát</span>
+            <span th:unless="${appointment.notes != null}">Không có ghi chú</span>
+        </p>
+    </div>
+
+    <!-- ============================================================
+         VIEW MODE: the appointment already has a saved record.
+         Show it read-only, with buttons to edit or delete.
+         ============================================================ -->
+    <div th:if="${formMode == 'view'}">
+
+        <div class="alert alert-success mt-4">
+            Lịch hẹn này đã được khám. Dưới đây là hồ sơ đã lưu.
+        </div>
+
+        <!-- Saved diagnosis -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="card-title">Chẩn đoán</h4>
+            </div>
+            <p><strong>Chẩn đoán:</strong> <span th:text="${existingRecord.diagnosis}">...</span></p>
+            <p><strong>Hướng điều trị:</strong>
+                <span th:if="${existingRecord.treatment != null}" th:text="${existingRecord.treatment}">...</span>
+                <span th:unless="${existingRecord.treatment != null}">Không có</span>
+            </p>
+            <p><strong>Ghi chú:</strong>
+                <span th:if="${existingRecord.notes != null}" th:text="${existingRecord.notes}">...</span>
+                <span th:unless="${existingRecord.notes != null}">Không có</span>
+            </p>
+        </div>
+
+        <!-- Saved prescriptions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="card-title">Đơn thuốc</h4>
+            </div>
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Tên thuốc</th>
+                    <th>Liều dùng</th>
+                    <th>Số ngày</th>
+                    <th>Hướng dẫn</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- One row for each saved prescription -->
+                <tr th:each="prescription : ${existingRecord.prescriptions}">
+                    <td th:text="${prescription.medicineName}">Paracetamol</td>
+                    <td th:text="${prescription.dosage}">1 viên/lần</td>
+                    <td th:text="${prescription.durationDays}">3</td>
+                    <td th:text="${prescription.instructions}">Uống sau ăn</td>
+                </tr>
+                <!-- Empty state when the record has no prescription -->
+                <tr th:if="${existingRecord.prescriptions == null or #lists.isEmpty(existingRecord.prescriptions)}">
+                    <td colspan="4" class="text-center text-muted">Không có đơn thuốc</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Actions: edit, delete, or go back -->
+        <div class="mt-4">
+            <!-- Edit opens the same form pre-filled with the saved data -->
+            <a th:href="@{/doctor/diagnosis/{id}/edit(id=${appointment.id})}" class="btn btn-primary">Sửa hồ sơ</a>
+
+            <!-- Delete opens a confirmation page first (safer than deleting right away) -->
+            <a th:href="@{/doctor/diagnosis/{id}/delete(id=${appointment.id})}" class="btn btn-danger">Xóa hồ sơ</a>
+
+            <a th:href="@{/doctor/schedule}" class="btn btn-secondary">Quay lại lịch khám</a>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         CREATE / EDIT MODE: show the diagnosis form.
+         formAction decides where the form is submitted (create or edit URL).
+         ============================================================ -->
+    <form th:if="${formMode == 'create' or formMode == 'edit'}"
+          th:object="${medicalRecordForm}"
+          method="post"
+          th:action="@{${formAction}}">
+
+        <!-- Diagnosis section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="card-title">Chẩn đoán</h4>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Chẩn đoán <span class="text-danger">*</span></label>
+                <textarea class="form-control" th:field="*{diagnosis}"
+                          placeholder="Nhập kết quả chẩn đoán..."></textarea>
+                <!-- Show the validation error when the diagnosis is left empty -->
+                <p class="form-error" th:if="${#fields.hasErrors('diagnosis')}"
+                   th:errors="*{diagnosis}">Vui lòng nhập chẩn đoán.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Hướng điều trị</label>
+                <textarea class="form-control" th:field="*{treatment}"
+                          placeholder="Nhập hướng điều trị..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ghi chú</label>
+                <textarea class="form-control" th:field="*{notes}"
+                          placeholder="Ghi chú thêm (nếu có)..."></textarea>
+            </div>
+        </div>
+
+        <!-- Prescription section: 5 blank rows, fill only the ones you need -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="card-title">Đơn thuốc</h4>
+            </div>
+            <p class="text-muted">Điền các dòng thuốc cần kê. Dòng để trống sẽ được bỏ qua.</p>
+
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Tên thuốc</th>
+                    <th>Liều dùng</th>
+                    <th>Số ngày</th>
+                    <th>Hướng dẫn</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- One input row for each prescription slot.
+                     iterationStatus.index gives the row number (0, 1, 2, ...).
+                     The __${...}__ syntax inserts that number into the field name so Spring
+                     can bind each input to prescriptions[0], prescriptions[1], and so on. -->
+                <tr th:each="prescription, iterationStatus : *{prescriptions}">
+                    <td>
+                        <input type="text" class="form-control"
+                               th:field="*{prescriptions[__${iterationStatus.index}__].medicineName}">
+                    </td>
+                    <td>
+                        <input type="text" class="form-control"
+                               th:field="*{prescriptions[__${iterationStatus.index}__].dosage}">
+                    </td>
+                    <td>
+                        <input type="number" min="1" class="form-control"
+                               th:field="*{prescriptions[__${iterationStatus.index}__].durationDays}">
+                    </td>
+                    <td>
+                        <input type="text" class="form-control"
+                               th:field="*{prescriptions[__${iterationStatus.index}__].instructions}">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Action buttons: the label changes between create and edit -->
+        <div class="mt-4">
+            <button th:if="${formMode == 'create'}" type="submit" class="btn btn-primary">Lưu hồ sơ khám</button>
+            <button th:if="${formMode == 'edit'}" type="submit" class="btn btn-primary">Cập nhật hồ sơ</button>
+            <a th:href="@{/doctor/schedule}" class="btn btn-secondary">Quay lại</a>
+        </div>
+    </form>
+
+</main>
 
 </body>
 </html>

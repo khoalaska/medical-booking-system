@@ -8,79 +8,63 @@
 </head>
 <body>
 
+<!-- Main content injected into the shared layout -->
 <main class="page-content" layout:fragment="content">
-
 
     <h2>Chào mừng Bác sĩ <span th:text="${doctorName}">Nguyễn Văn A</span></h2>
 
-
+    <!-- Overview stat cards: a quick glance at today's numbers -->
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
         <div class="card">
             <p class="text-muted">Lịch hẹn hôm nay</p>
-
-            <h3 th:text="${todayAppointments} ?: '0'">0</h3>
+            <h3 th:text="${todayAppointments}">0</h3>
         </div>
         <div class="card">
             <p class="text-muted">Bệnh nhân chờ khám</p>
-            <h3 th:text="${pendingPatients} ?: '0'">0</h3>
+            <h3 th:text="${pendingPatients}">0</h3>
         </div>
         <div class="card">
             <p class="text-muted">Đã khám hôm nay</p>
-            <h3 th:text="${completedToday} ?: '0'">0</h3>
+            <h3 th:text="${completedToday}">0</h3>
         </div>
     </div>
 
-
+    <!-- Quick preview of the next patients today.
+         The full working list with date picker and "Khám" buttons lives on the Schedule screen. -->
     <div class="card mt-4">
         <div class="card-header">
-            <h4 class="card-title">Lịch hẹn hôm nay</h4>
-            <input type="text" class="form-control" placeholder="Tìm bệnh nhân..."
-                   style="max-width: 250px;">
+            <h4 class="card-title">Bệnh nhân sắp tới hôm nay</h4>
         </div>
         <table class="data-table">
             <thead>
             <tr>
-                <th>Bệnh nhân</th>
                 <th>Giờ hẹn</th>
-                <th>Lý do khám</th>
+                <th>Bệnh nhân</th>
                 <th>Trạng thái</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="apt : ${appointments}">
+            <!-- Show only the first 5 appointments as a short preview -->
+            <tr th:each="appointment, iterationStatus : ${appointments}" th:if="${iterationStatus.index < 5}">
 
-                <td th:text="${apt.patient.user.fullName}">Nguyễn Văn A</td>
+                <!-- Appointment start time -->
+                <td th:text="${#temporals.format(appointment.timeSlot.startTime, 'HH:mm')}">09:00</td>
 
+                <!-- Patient full name -->
+                <td th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</td>
 
-                <td th:text="${apt.timeSlot.startTime}">09:00</td>
-
-                <td th:text="${apt.notes} ?: 'Không có ghi chú'">Khám tổng quát</td>
-
-                <td>
-                        <!--
-                            th:classappend = thêm class CSS tùy theo giá trị status
-                            PENDING   → badge-warning (vàng)
-                            CONFIRMED → badge-info    (xanh dương)
-                            COMPLETED → badge-success (xanh lá)
-                            CANCELLED → badge-danger  (đỏ)
-                        -->
-                        <span class="badge"
-                              th:classappend="${apt.status.name() == 'PENDING'} ? 'badge-warning'
-                                           : (${apt.status.name() == 'CONFIRMED'} ? 'badge-info'
-                                           : (${apt.status.name() == 'COMPLETED'} ? 'badge-success'
-                                           : 'badge-danger'))"
-                              th:text="${apt.status.name() == 'PENDING'} ? 'Chờ xác nhận'
-                                     : (${apt.status.name() == 'CONFIRMED'} ? 'Đã xác nhận'
-                                     : (${apt.status.name() == 'COMPLETED'} ? 'Đã khám'
-                                     : 'Đã hủy'))">
-                            Chờ khám
-                        </span>
+                <!-- Map the appointment status to a Vietnamese label and a colored badge -->
+                <td th:switch="${appointment.status.name()}">
+                    <span th:case="'PENDING'" class="badge badge-warning">Chờ xác nhận</span>
+                    <span th:case="'CONFIRMED'" class="badge badge-info">Đã xác nhận</span>
+                    <span th:case="'COMPLETED'" class="badge badge-success">Đã khám</span>
+                    <span th:case="'CANCELLED'" class="badge badge-danger">Đã hủy</span>
                 </td>
             </tr>
+
+            <!-- Empty state when there is no appointment today -->
             <tr th:if="${appointments == null or #lists.isEmpty(appointments)}">
-                <td colspan="4" class="text-center text-muted">
-                    Chưa có lịch hẹn hôm nay
-                </td>
+                <td colspan="3" class="text-center text-muted">Chưa có lịch hẹn hôm nay</td>
             </tr>
             </tbody>
         </table>

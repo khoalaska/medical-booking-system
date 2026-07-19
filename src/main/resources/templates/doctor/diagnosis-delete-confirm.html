@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main-layout}"
+      lang="vi">
+<head>
+    <title>Xóa hồ sơ bệnh án</title>
+</head>
+<body>
+
+<!-- Main content injected into the shared layout -->
+<main class="page-content" layout:fragment="content">
+
+    <h2>Xóa hồ sơ bệnh án</h2>
+
+    <!-- Warning message so the doctor understands the action cannot be undone -->
+    <div class="alert alert-warning mt-4">
+        Bạn có chắc chắn muốn xóa hồ sơ khám này không? Hành động này không thể hoàn tác.
+        Sau khi xóa, lịch hẹn sẽ được mở lại để khám lại.
+    </div>
+
+    <!-- Short summary of the record that will be deleted -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Hồ sơ sẽ bị xóa</h4>
+        </div>
+        <p><strong>Bệnh nhân:</strong>
+            <span th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</span></p>
+        <p><strong>Ngày khám:</strong>
+            <span th:text="${#temporals.format(appointment.timeSlot.workSchedule.workDate, 'dd/MM/yyyy')}">01/01/2025</span></p>
+        <p><strong>Chẩn đoán:</strong>
+            <span th:text="${existingRecord.diagnosis}">...</span></p>
+    </div>
+
+    <!-- Confirm or cancel -->
+    <div class="mt-4">
+        <!-- This POST actually deletes the record on the server -->
+        <form method="post" th:action="@{/doctor/diagnosis/{id}/delete(id=${appointment.id})}"
+              style="display: inline;">
+            <button type="submit" class="btn btn-danger">Đồng ý xóa</button>
+        </form>
+
+        <!-- Cancel and go back to the record view without deleting -->
+        <a th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}" class="btn btn-secondary">Quay lại</a>
+    </div>
+
+</main>
+
+</body>
+</html>

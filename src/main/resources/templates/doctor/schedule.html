@@ -1,10 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main-layout}"
+      lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Lịch khám</title>
 </head>
 <body>
+
+<!-- Main content injected into the shared layout -->
+<main class="page-content" layout:fragment="content">
+
+    <h2>Lịch khám trong ngày</h2>
+
+    <!-- Filter: doctor picks a day and (optionally) a status.
+         The form submits by GET so both values stay in the URL. -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">Bộ lọc lịch khám</h4>
+        </div>
+        <form method="get" th:action="@{/doctor/schedule}" class="date-form">
+            <input type="date" name="date" class="form-control" th:value="${selectedDate}">
+
+            <!-- Status filter; the chosen status stays selected after submitting -->
+            <select name="status" class="form-select" style="max-width: 200px;">
+                <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}">Tất cả trạng thái</option>
+                <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Chờ xác nhận</option>
+                <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Đã xác nhận</option>
+                <option value="COMPLETED" th:selected="${selectedStatus == 'COMPLETED'}">Đã khám</option>
+                <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Đã hủy</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary">Xem lịch</button>
+        </form>
+    </div>
+
+    <!-- Appointment list for the selected date -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="card-title">
+                Danh sách lịch hẹn ngày
+                <span th:text="${#temporals.format(selectedDate, 'dd/MM/yyyy')}">01/01/2025</span>
+            </h4>
+        </div>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Giờ khám</th>
+                <th>Bệnh nhân</th>
+                <th>Lý do khám</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Render one row for each appointment of the day.
+                 canExamine: appointment is waiting to be examined (PENDING or CONFIRMED).
+                 canOpen: appointment is not cancelled, so its diagnosis screen can be opened. -->
+            <tr th:each="appointment : ${appointments}"
+                th:with="canExamine=${appointment.status.name() == 'PENDING' or appointment.status.name() == 'CONFIRMED'},
+                         canOpen=${appointment.status.name() != 'CANCELLED'}">
+
+                <!-- Time range of the booked slot -->
+                <td>
+                    <span th:text="${#temporals.format(appointment.timeSlot.startTime, 'HH:mm')}">08:00</span>
+                    -
+                    <span th:text="${#temporals.format(appointment.timeSlot.endTime, 'HH:mm')}">09:00</span>
+                </td>
+
+                <!-- Patient full name -->
+                <td>
+                    <!-- When the appointment is not cancelled, the name links to its diagnosis screen -->
+                    <a th:if="${canOpen}"
+                       th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
+                       th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</a>
+                    <!-- Cancelled appointments show the name as plain text -->
+                    <span th:unless="${canOpen}" th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</span>
+                </td>
+
+                <!-- Reason for visit -->
+                <td>
+                    <!-- Show the patient's note when it exists -->
+                    <span th:if="${appointment.notes != null}" th:text="${appointment.notes}">Khám tổng quát</span>
+                    <!-- Show a placeholder when the patient did not write any note -->
+                    <span th:unless="${appointment.notes != null}">Không có ghi chú</span>
+                </td>
+
+                <!-- Map the appointment status to a Vietnamese label and a colored badge -->
+                <td th:switch="${appointment.status.name()}">
+                    <span th:case="'PENDING'" class="badge badge-warning">Chờ xác nhận</span>
+                    <span th:case="'CONFIRMED'" class="badge badge-info">Đã xác nhận</span>
+                    <span th:case="'COMPLETED'" class="badge badge-success">Đã khám</span>
+                    <span th:case="'CANCELLED'" class="badge badge-danger">Đã hủy</span>
+                </td>
+
+                <!-- Action column -->
+                <td>
+                    <!-- "Khám" button opens the diagnosis screen for a not-yet-examined appointment -->
+                    <a th:if="${canExamine}"
+                       th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
+                       class="btn btn-primary btn-sm">Khám</a>
+                    <!-- "Xem / Sửa" opens the saved record of an already examined appointment -->
+                    <a th:if="${appointment.status.name() == 'COMPLETED'}"
+                       th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
+                       class="btn btn-secondary btn-sm">Xem / Sửa</a>
+                </td>
+            </tr>
+
+            <!-- Empty state when there is no appointment on the selected date -->
+            <tr th:if="${appointments == null or #lists.isEmpty(appointments)}">
+                <td colspan="5" class="text-center text-muted">Chưa có lịch hẹn trong ngày này</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
 
 </body>
 </html>

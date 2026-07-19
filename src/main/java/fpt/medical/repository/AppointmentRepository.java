@@ -25,6 +25,22 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("date") LocalDate date
     );
 
+    // Same as findByDoctorIdAndDate, but also keeps only the appointments with a given status.
+    @Query("SELECT a FROM Appointment a " +
+            "JOIN FETCH a.patient p " +
+            "JOIN FETCH p.user " +
+            "JOIN FETCH a.timeSlot ts " +
+            "JOIN FETCH ts.workSchedule ws " +
+            "WHERE a.doctor.id = :doctorId " +
+            "AND ws.workDate = :date " +
+            "AND a.status = :status " +
+            "ORDER BY ts.startTime")
+    List<Appointment> findByDoctorIdAndDateAndStatus(
+            @Param("doctorId") Long doctorId,
+            @Param("date") LocalDate date,
+            @Param("status") AppointmentStatus status
+    );
+
 
 
     @Query("SELECT COUNT(a) FROM Appointment a " +
@@ -48,4 +64,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("date") LocalDate date,
             @Param("status") AppointmentStatus status
     );
+
+    // Load one appointment together with the patient, doctor and time slot details.
+    // Used by the diagnosis screen so all information is available without lazy-loading errors.
+    @Query("SELECT a FROM Appointment a " +
+            "JOIN FETCH a.patient p " +
+            "JOIN FETCH p.user " +
+            "JOIN FETCH a.doctor d " +
+            "JOIN FETCH d.user " +
+            "JOIN FETCH a.timeSlot ts " +
+            "JOIN FETCH ts.workSchedule " +
+            "WHERE a.id = :appointmentId")
+    Appointment findByIdWithDetails(@Param("appointmentId") Long appointmentId);
 }
