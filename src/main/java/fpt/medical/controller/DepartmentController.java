@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/departments")
+@RequestMapping("/admin/departments")
 @RequiredArgsConstructor
 public class DepartmentController {
 
@@ -69,7 +69,7 @@ public class DepartmentController {
         try {
             departmentService.save(department);
             redirectAttributes.addFlashAttribute("successMessage", "Lưu phòng ban thành công!");
-            return "redirect:/departments";
+            return "redirect:/admin/departments";
         } catch (DuplicateRecordException e) {
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("pageTitle", department.getId() == null ? "Thêm mới phòng ban" : "Chỉnh sửa phòng ban");
@@ -85,6 +85,6 @@ public class DepartmentController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/departments";
+        return "redirect:/admin/departments";
     }
 }

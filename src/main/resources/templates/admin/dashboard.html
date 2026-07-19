@@ -1,10 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Tổng quan hệ thống</title>
 </head>
 <body>
+
+<main class="page-content" layout:fragment="content">
+    <div style="margin-bottom: 25px;">
+        <h2>Tổng quan hệ thống</h2>
+    </div>
+
+    <!-- Stats Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+        
+        <!-- Total Doctors -->
+        <div class="card" style="padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px;">
+            <div style="font-size: 28px; font-weight: bold;" th:text="${stats.totalDoctors}">0</div>
+            <div style="font-size: 13px; color: #666; margin-top: 5px;">Tổng số bác sĩ</div>
+        </div>
+
+        <!-- Total Departments -->
+        <div class="card" style="padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px;">
+            <div style="font-size: 28px; font-weight: bold;" th:text="${stats.totalDepartments}">0</div>
+            <div style="font-size: 13px; color: #666; margin-top: 5px;">Tổng số phòng ban</div>
+        </div>
+
+        <!-- Schedules Today -->
+        <div class="card" style="padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px;">
+            <div style="font-size: 28px; font-weight: bold;" th:text="${stats.totalSchedulesToday}">0</div>
+            <div style="font-size: 13px; color: #666; margin-top: 5px;">Lịch làm việc hôm nay</div>
+        </div>
+
+        <!-- Doctors Without Department -->
+        <div class="card"
+             th:style="'padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px;' + (${stats.doctorsWithoutDepartment > 0} ? ' background-color: #fff3cd; border-left: 5px solid #ffc107;' : '')">
+            <div style="font-size: 28px; font-weight: bold;" th:text="${stats.doctorsWithoutDepartment}">0</div>
+            <div style="font-size: 13px; color: #666; margin-top: 5px;">Bác sĩ chưa phân khoa</div>
+        </div>
+
+        <!-- Departments Without Doctors -->
+        <div class="card"
+             th:style="'padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px;' + (${stats.departmentsWithoutDoctors > 0} ? ' background-color: #f8d7da; border-left: 5px solid #dc3545;' : '')">
+            <div style="font-size: 28px; font-weight: bold;" th:text="${stats.departmentsWithoutDoctors}">0</div>
+            <div style="font-size: 13px; color: #666; margin-top: 5px;">Phòng ban chưa có bác sĩ</div>
+        </div>
+    </div>
+
+    <!-- Upcoming Schedules Section -->
+    <div class="card" style="padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px;">
+        <h3 style="margin-bottom: 15px; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">Lịch làm việc sắp tới</h3>
+        
+        <div th:if="${#lists.isEmpty(upcomingSchedules)}" style="padding: 15px; color: #777; font-style: italic;">
+            Không có lịch làm việc nào sắp tới.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(upcomingSchedules)}" class="table-responsive">
+            <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #ddd; text-align: left;">
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Bác sĩ</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Ngày</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Ca làm việc</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Trạng thái</th>
+                        <th style="padding: 10px; text-align: center; font-weight: bold; color: inherit;">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="schedule : ${upcomingSchedules}" style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px; font-weight: bold;" th:text="${schedule.doctor.user.fullName}">Tên bác sĩ</td>
+                        <td style="padding: 10px;" th:text="${#temporals.format(schedule.workDate, 'dd/MM/yyyy')}">20/07/2026</td>
+                        <td style="padding: 10px;">
+                            <span th:switch="${schedule.shift.name()}">
+                                <span th:case="'MORNING'">Ca sáng</span>
+                                <span th:case="'AFTERNOON'">Ca chiều</span>
+                                <span th:case="'EVENING'">Ca tối</span>
+                                <span th:case="*">Chưa rõ</span>
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">
+                            <span th:if="${schedule.available}" class="badge alert-success" style="padding: 3px 8px; border-radius: 4px; font-size: 11px; display: inline-block;">Hoạt động</span>
+                            <span th:unless="${schedule.available}" class="badge alert-secondary" style="padding: 3px 8px; border-radius: 4px; font-size: 11px; display: inline-block; background-color: #ddd; color: #555;">Tạm ngưng</span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <a th:href="@{/admin/schedules/{id}/timeslots(id=${schedule.id})}" style="text-decoration: none; color: #007bff; font-weight: bold;">Xem giờ</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="text-align: right; margin-top: 10px;">
+                <a th:href="@{/admin/schedules}" style="text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px;">
+                    Xem tất cả lịch làm việc &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Departments Without Doctors Warning Section -->
+    <div th:if="${!#lists.isEmpty(departmentsWithoutDoctors)}" class="card" style="padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px; border-top: 4px solid #dc3545;">
+        <h3 style="margin-bottom: 15px; color: #c0392b;">Cảnh báo: Phòng ban chưa có bác sĩ</h3>
+        
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li th:each="dept : ${departmentsWithoutDoctors}" style="padding: 10px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center;">
+                <span th:text="${dept.name}" style="font-weight: bold; color: #333;">Tên phòng ban</span>
+                <a th:href="@{/admin/doctors/new}" class="btn btn-primary" style="font-size: 12px; padding: 4px 10px; text-decoration: none;">Thêm bác sĩ</a>
+            </li>
+        </ul>
+    </div>
+</main>
 
 </body>
 </html>

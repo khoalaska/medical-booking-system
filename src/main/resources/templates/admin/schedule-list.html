@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      th:with="activeMenu='schedules'">
+<head>
+    <title>Quản lý Lịch làm việc</title>
+</head>
+<body>
+
+<main class="page-content" layout:fragment="content">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>Quản lý Lịch làm việc</h2>
+            <a th:href="@{/admin/schedules/new}" class="btn btn-primary">Thêm mới lịch làm việc</a>
+        </div>
+
+        <!-- Success Message -->
+        <div th:if="${successMessage != null}" class="alert alert-success" th:text="${successMessage}">
+            Thao tác thành công.
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}">
+            Đã xảy ra lỗi.
+        </div>
+
+        <!-- Filter Box -->
+        <div class="search-box" style="margin-bottom: 20px;">
+            <form th:action="@{/admin/schedules}" method="get" style="display: flex; gap: 10px; align-items: center;">
+                <input type="hidden" name="sortBy" th:value="${sortBy}" />
+                <input type="hidden" name="sortDir" th:value="${sortDir}" />
+                
+                <select name="doctorId" class="form-control" style="flex: 1; padding: 8px;">
+                    <option value="">-- Tất cả bác sĩ --</option>
+                    <option th:each="d : ${doctors}" 
+                            th:value="${d.id}" 
+                            th:text="${d.user.fullName}" 
+                            th:selected="${doctorId != null && doctorId == d.id}"></option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a th:href="@{/admin/schedules}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit;">Làm mới</a>
+            </form>
+        </div>
+
+        <!-- Schedule Table -->
+        <div class="table-responsive">
+            <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #ddd; text-align: left;">
+                        <th style="padding: 10px;">
+                            <a th:href="@{/admin/schedules(doctorId=${doctorId}, sortBy='id', sortDir=${reverseSortDir})}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                                ID <span th:if="${sortBy == 'id'}" th:text="${sortDir == 'asc' ? '▲' : '▼'}"></span>
+                            </a>
+                        </th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Bác sĩ</th>
+                        <th style="padding: 10px;">
+                            <a th:href="@{/admin/schedules(doctorId=${doctorId}, sortBy='workDate', sortDir=${reverseSortDir})}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                                Ngày làm việc <span th:if="${sortBy == 'workDate'}" th:text="${sortDir == 'asc' ? '▲' : '▼'}"></span>
+                            </a>
+                        </th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Ca làm việc</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Trạng thái</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Số khung giờ</th>
+                        <th style="padding: 10px; text-align: center; font-weight: bold; color: inherit;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(schedules)}">
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #777;">Không có lịch làm việc nào</td>
+                    </tr>
+                    <tr th:each="schedule : ${schedules}" style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;" th:text="${schedule.id}">1</td>
+                        <td style="padding: 10px; font-weight: bold;" th:text="${schedule.doctor.user.fullName}">Tên bác sĩ</td>
+                        <td style="padding: 10px;" th:text="${#temporals.format(schedule.workDate, 'dd/MM/yyyy')}">20/07/2026</td>
+                        <td style="padding: 10px;">
+                            <span th:switch="${schedule.shift.name()}">
+                                <span th:case="'MORNING'">Ca sáng</span>
+                                <span th:case="'AFTERNOON'">Ca chiều</span>
+                                <span th:case="'EVENING'">Ca tối</span>
+                                <span th:case="*">Chưa rõ</span>
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">
+                            <span th:if="${schedule.available}" class="badge alert-success" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block;">Hoạt động</span>
+                            <span th:unless="${schedule.available}" class="badge alert-secondary" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block; background-color: #ddd; color: #555;">Tạm ngưng</span>
+                        </td>
+                        <td style="padding: 10px;">
+                            <span th:text="${schedule.timeSlots.size()}">0</span>
+                            <a th:href="@{/admin/schedules/{id}/timeslots(id=${schedule.id})}" style="margin-left: 10px; text-decoration: none; color: #007bff; font-weight: bold;">Xem chi tiết</a>
+                        </td>
+                        <td style="padding: 10px; text-align: center; display: flex; gap: 10px; justify-content: center; align-items: center;">
+                            <a th:href="@{/admin/schedules/edit/{id}(id=${schedule.id})}" class="btn btn-secondary" style="font-size: 13px; text-decoration: none; padding: 5px 10px; border-radius: 4px;">Sửa</a>
+                            <a th:href="@{/admin/schedules/delete/{id}(id=${schedule.id})}" class="btn btn-danger" style="font-size: 13px; text-decoration: none; padding: 5px 10px; border-radius: 4px;" 
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa lịch làm việc này? Toàn bộ khung giờ bên trong cũng sẽ bị xóa.')">Xóa</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination & Summary Info -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+            <div>
+                Tổng số bản ghi: <strong th:text="${totalItems}">0</strong>
+            </div>
+            
+            <div class="pagination-wrapper" th:if="${totalPages > 1}">
+                <ul class="pagination" style="display: flex; list-style: none; gap: 5px; padding: 0; margin: 0;">
+                    <!-- Previous Page -->
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="${currentPage == 0} ? '#' : @{/admin/schedules(page=${currentPage - 1}, doctorId=${doctorId}, sortBy=${sortBy}, sortDir=${sortDir})}"
+                           th:onclick="${currentPage == 0} ? 'return false;' : null"
+                           style="padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;">Trước</a>
+                    </li>
+                    
+                    <!-- Page Numbers -->
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/schedules(page=${i}, doctorId=${doctorId}, sortBy=${sortBy}, sortDir=${sortDir})}" th:text="${i + 1}"
+                           th:style="${currentPage == i} ? 'padding: 6px 12px; border: 1px solid #007bff; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 4px;' : 'padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;'">1</a>
+                    </li>
+                    
+                    <!-- Next Page -->
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="${currentPage == totalPages - 1} ? '#' : @{/admin/schedules(page=${currentPage + 1}, doctorId=${doctorId}, sortBy=${sortBy}, sortDir=${sortDir})}"
+                           th:onclick="${currentPage == totalPages - 1} ? 'return false;' : null"
+                           style="padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;">Sau</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

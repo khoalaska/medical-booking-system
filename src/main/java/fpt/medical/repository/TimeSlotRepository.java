@@ -13,4 +13,6 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
 
     List<TimeSlot> findByWorkScheduleDoctorIdAndWorkScheduleWorkDateAndWorkScheduleShiftOrderByStartTimeAsc(
             Long doctorId, LocalDate workDate, ShiftType shift);
+
+    List<TimeSlot> findByWorkScheduleIdOrderByStartTimeAsc(Long workScheduleId);
 }

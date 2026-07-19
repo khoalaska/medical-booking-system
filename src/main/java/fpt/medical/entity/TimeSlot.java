@@ -1,6 +1,8 @@
 package fpt.medical.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalTime;
@@ -24,9 +26,11 @@ public class TimeSlot {
     @JoinColumn(name = "schedule_id", nullable = false)
     private WorkSchedule workSchedule;
 
+    @NotNull(message = "Giờ bắt đầu không được để trống")
     @Column(nullable = false)
     private LocalTime startTime;
 
+    @NotNull(message = "Giờ kết thúc không được để trống")
     @Column(nullable = false)
     private LocalTime endTime;
 
@@ -34,6 +38,7 @@ public class TimeSlot {
     @Builder.Default
     private Integer bookedCapacity = 0;
 
+    @Min(value = 1, message = "Sức chứa tối đa phải lớn hơn 0")
     @Column(nullable = false)
     @Builder.Default
     private Integer maxCapacity = 3;
