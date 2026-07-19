@@ -12,6 +12,7 @@ import fpt.medical.exception.ResourceNotFoundException;
 import fpt.medical.repository.AppointmentRepository;
 import fpt.medical.repository.MedicalRecordRepository;
 import fpt.medical.repository.PatientRepository;
+import fpt.medical.repository.PrescriptionRepository;
 import fpt.medical.service.MedicalRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,31 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
+    private final PrescriptionRepository prescriptionRepository;
+
+    // A fixed list of common medicines that are always suggested on the diagnosis form
+    private static final List<String> COMMON_MEDICINES = List.of(
+            "Paracetamol 500mg",
+            "Efferalgan 500mg",
+            "Ibuprofen 400mg",
+            "Aspirin 81mg",
+            "Amoxicillin 500mg",
+            "Cephalexin 500mg",
+            "Azithromycin 250mg",
+            "Loratadin 10mg",
+            "Cetirizin 10mg",
+            "Omeprazol 20mg",
+            "Vitamin C 1000mg",
+            "Vitamin B Complex",
+            "Oresol (bù nước điện giải)",
+            "Berberin",
+            "Smecta (trị tiêu chảy)",
+            "Men tiêu hóa",
+            "Dextromethorphan (thuốc ho)",
+            "Salbutamol",
+            "Amlodipin 5mg",
+            "Metformin 500mg"
+    );
 
     // Return the medical record of an appointment, or null when it does not exist yet
     @Override
@@ -193,6 +221,23 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
             throw new ResourceNotFoundException("Patient", "id", patientId);
         }
         return patient;
+    }
+
+    // Return the medicine suggestions: common medicines plus every medicine prescribed before
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getMedicineSuggestions() {
+
+        // Use a TreeSet so the names are unique and sorted alphabetically
+        Set<String> names = new TreeSet<>();
+
+        // Always include the common medicines
+        names.addAll(COMMON_MEDICINES);
+
+        // Also include every medicine that has already been prescribed before
+        names.addAll(prescriptionRepository.findDistinctMedicineNames());
+
+        return new ArrayList<>(names);
     }
 
     // Small helper: check whether a text value is null or only spaces

@@ -170,7 +170,14 @@
             <div class="card-header">
                 <h4 class="card-title">Đơn thuốc</h4>
             </div>
-            <p class="text-muted">Điền các dòng thuốc cần kê. Dòng để trống sẽ được bỏ qua.</p>
+            <p class="text-muted">Điền các dòng thuốc cần kê. Dòng để trống sẽ được bỏ qua.
+                Gõ tên thuốc để xem gợi ý; nếu không có trong danh sách thì vẫn gõ tay bình thường.</p>
+
+            <!-- Suggestion list shared by every medicine input below.
+                 Typing shows matching medicines, but a custom name can still be entered. -->
+            <datalist id="medicineList">
+                <option th:each="medicineName : ${medicineSuggestions}" th:value="${medicineName}"></option>
+            </datalist>
 
             <table class="data-table">
                 <thead>
@@ -188,7 +195,8 @@
                      can bind each input to prescriptions[0], prescriptions[1], and so on. -->
                 <tr th:each="prescription, iterationStatus : *{prescriptions}">
                     <td>
-                        <input type="text" class="form-control"
+                        <!-- list="medicineList" connects this input to the suggestion datalist above -->
+                        <input type="text" class="form-control" list="medicineList"
                                th:field="*{prescriptions[__${iterationStatus.index}__].medicineName}">
                     </td>
                     <td>

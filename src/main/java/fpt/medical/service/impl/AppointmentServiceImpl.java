@@ -17,17 +17,14 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 
     private final AppointmentRepository appointmentRepository;
+    // Return today's upcoming (not yet examined) appointments: status PENDING or CONFIRMED
     @Override
     @Transactional(readOnly = true)
-    public List<Appointment> getTodayAppointments(Long doctorId) {
+    public List<Appointment> getUpcomingTodayAppointments(Long doctorId) {
 
-        return appointmentRepository.findByDoctorIdAndDate(doctorId, LocalDate.now());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public long countTodayAppointments(Long doctorId) {
-        return appointmentRepository.countByDoctorIdAndDate(doctorId, LocalDate.now());
+        // "Upcoming" means the patient has not been examined yet
+        List<AppointmentStatus> upcomingStatuses = List.of(AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED);
+        return appointmentRepository.findByDoctorIdAndDateAndStatusIn(doctorId, LocalDate.now(), upcomingStatuses);
     }
 
     @Override

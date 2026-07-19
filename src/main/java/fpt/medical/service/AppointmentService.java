@@ -9,9 +9,8 @@ import java.util.List;
 public interface AppointmentService {
     //khoa
 
-    List<Appointment> getTodayAppointments(Long doctorId);
-
-    long countTodayAppointments(Long doctorId);
+    // Get today's upcoming (not yet examined) appointments for the dashboard preview
+    List<Appointment> getUpcomingTodayAppointments(Long doctorId);
 
     long countPendingToday(Long doctorId);
 

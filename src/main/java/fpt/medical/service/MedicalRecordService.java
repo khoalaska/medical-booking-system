@@ -29,4 +29,8 @@ public interface MedicalRecordService {
 
     // Get one patient by id (used for the patient history page header)
     Patient getPatientById(Long patientId);
+
+    // Get the medicine name suggestions shown on the diagnosis form
+    // (a list of common medicines plus every medicine already prescribed before)
+    List<String> getMedicineSuggestions();
 }

@@ -44,8 +44,8 @@
             </tr>
             </thead>
             <tbody>
-            <!-- Show only the first 5 appointments as a short preview -->
-            <tr th:each="appointment, iterationStatus : ${appointments}" th:if="${iterationStatus.index < 5}">
+            <!-- Show only the first 5 upcoming (not yet examined) patients as a short preview -->
+            <tr th:each="appointment, iterationStatus : ${upcomingAppointments}" th:if="${iterationStatus.index < 5}">
 
                 <!-- Appointment start time -->
                 <td th:text="${#temporals.format(appointment.timeSlot.startTime, 'HH:mm')}">09:00</td>
@@ -53,18 +53,16 @@
                 <!-- Patient full name -->
                 <td th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</td>
 
-                <!-- Map the appointment status to a Vietnamese label and a colored badge -->
+                <!-- These patients are not examined yet, so the status is only "waiting" or "confirmed" -->
                 <td th:switch="${appointment.status.name()}">
                     <span th:case="'PENDING'" class="badge badge-warning">Chờ xác nhận</span>
                     <span th:case="'CONFIRMED'" class="badge badge-info">Đã xác nhận</span>
-                    <span th:case="'COMPLETED'" class="badge badge-success">Đã khám</span>
-                    <span th:case="'CANCELLED'" class="badge badge-danger">Đã hủy</span>
                 </td>
             </tr>
 
-            <!-- Empty state when there is no appointment today -->
-            <tr th:if="${appointments == null or #lists.isEmpty(appointments)}">
-                <td colspan="3" class="text-center text-muted">Chưa có lịch hẹn hôm nay</td>
+            <!-- Empty state when there is no patient waiting to be examined today -->
+            <tr th:if="${upcomingAppointments == null or #lists.isEmpty(upcomingAppointments)}">
+                <td colspan="3" class="text-center text-muted">Không còn bệnh nhân nào chờ khám hôm nay</td>
             </tr>
             </tbody>
         </table>

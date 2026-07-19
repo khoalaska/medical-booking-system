@@ -37,25 +37,29 @@ public class DoctorController {
     private final MedicalRecordService medicalRecordService;
 
     @GetMapping("/dashboard")
-    public String dashboard( @AuthenticationPrincipal CustomUserDetails userDetails,
-                             Model model ) {
+    public String dashboard(@AuthenticationPrincipal CustomUserDetails userDetails,
+                            Model model) {
 
+        // Find the current doctor from the logged-in account
         Doctor doctor = doctorService.getByUserId(userDetails.getUser().getId());
-
         Long doctorId = doctor.getId();
-        long todayCount   = appointmentService.countTodayAppointments(doctorId);
+
+        // Count waiting patients (PENDING + CONFIRMED) and patients already examined today
         long pendingCount = appointmentService.countPendingToday(doctorId);
         long completedCount = appointmentService.countCompletedToday(doctorId);
-        List<Appointment> appointments = appointmentService.getTodayAppointments(doctorId);
 
+        // "Today's appointments" only counts active ones (waiting + examined), NOT cancelled ones
+        long todayCount = pendingCount + completedCount;
+
+        // Preview: today's next patients that have not been examined yet
+        List<Appointment> upcomingAppointments = appointmentService.getUpcomingTodayAppointments(doctorId);
 
         model.addAttribute("activeMenu", "dashboard");
         model.addAttribute("doctorName", doctor.getUser().getFullName());
         model.addAttribute("todayAppointments", todayCount);
         model.addAttribute("pendingPatients", pendingCount);
         model.addAttribute("completedToday", completedCount);
-        model.addAttribute("appointments", appointments);
-
+        model.addAttribute("upcomingAppointments", upcomingAppointments);
 
         return "doctor/dashboard";
     }
@@ -126,6 +130,7 @@ public class DoctorController {
             model.addAttribute("medicalRecordForm", medicalRecordForm);
             model.addAttribute("formMode", "create");
             model.addAttribute("formAction", "/doctor/diagnosis/" + appointmentId);
+            model.addAttribute("medicineSuggestions", medicalRecordService.getMedicineSuggestions());
         } else {
             // A record already exists: show it in read-only view with edit/delete options
             model.addAttribute("formMode", "view");
@@ -152,6 +157,7 @@ public class DoctorController {
             model.addAttribute("existingRecord", null);
             model.addAttribute("formMode", "create");
             model.addAttribute("formAction", "/doctor/diagnosis/" + appointmentId);
+            model.addAttribute("medicineSuggestions", medicalRecordService.getMedicineSuggestions());
             return "doctor/diagnosis-form";
         }
 
@@ -206,6 +212,7 @@ public class DoctorController {
         model.addAttribute("medicalRecordForm", medicalRecordForm);
         model.addAttribute("formMode", "edit");
         model.addAttribute("formAction", "/doctor/diagnosis/" + appointmentId + "/edit");
+        model.addAttribute("medicineSuggestions", medicalRecordService.getMedicineSuggestions());
         return "doctor/diagnosis-form";
     }
 
@@ -226,6 +233,7 @@ public class DoctorController {
             model.addAttribute("appointment", appointment);
             model.addAttribute("formMode", "edit");
             model.addAttribute("formAction", "/doctor/diagnosis/" + appointmentId + "/edit");
+            model.addAttribute("medicineSuggestions", medicalRecordService.getMedicineSuggestions());
             return "doctor/diagnosis-form";
         }
 
