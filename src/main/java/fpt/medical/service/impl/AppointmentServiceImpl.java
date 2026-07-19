@@ -27,6 +27,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentRepository.findByDoctorIdAndDateAndStatusIn(doctorId, LocalDate.now(), upcomingStatuses);
     }
 
+    // Count today's patients waiting to be examined: PENDING plus CONFIRMED appointments
     @Override
     @Transactional(readOnly = true)
     public long countPendingToday(Long doctorId) {
@@ -38,6 +39,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return pending + confirmed;
     }
 
+    // Count today's appointments that have already been examined (COMPLETED)
     @Override
     @Transactional(readOnly = true)
     public long countCompletedToday(Long doctorId) {
@@ -73,6 +75,23 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         return appointment;
+    }
+
+    // Confirm a pending appointment so it becomes ready to be examined
+    @Override
+    public void confirmAppointment(Long appointmentId) {
+
+        // Load the appointment
+        Appointment appointment = appointmentRepository.findByIdWithDetails(appointmentId);
+        if (appointment == null) {
+            throw new ResourceNotFoundException("Appointment", "id", appointmentId);
+        }
+
+        // Only a pending appointment can be confirmed
+        if (appointment.getStatus() == AppointmentStatus.PENDING) {
+            appointment.setStatus(AppointmentStatus.CONFIRMED);
+            appointmentRepository.save(appointment);
+        }
     }
 
 }

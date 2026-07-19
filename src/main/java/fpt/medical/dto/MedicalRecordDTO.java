@@ -11,8 +11,8 @@ public class MedicalRecordDTO {
 
     private Long appointmentId;
 
-    // Diagnosis is required, so we validate it with @NotBlank
-    @NotBlank
+    // Diagnosis is required. The Vietnamese message is shown on the form when it is left empty.
+    @NotBlank(message = "Vui lòng nhập chẩn đoán")
     private String diagnosis;
 
     private String treatment;

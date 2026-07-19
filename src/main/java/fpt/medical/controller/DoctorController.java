@@ -103,6 +103,20 @@ public class DoctorController {
         return "doctor/schedule";
     }
 
+    // Confirm a pending appointment (doctor accepts it), then return to the schedule
+    @PostMapping("/schedule/confirm/{appointmentId}")
+    public String confirmAppointment(@PathVariable Long appointmentId) {
+
+        // Read the work date first so we can return to the correct schedule day
+        Appointment appointment = appointmentService.getById(appointmentId);
+        LocalDate workDate = appointment.getTimeSlot().getWorkSchedule().getWorkDate();
+
+        // Move the appointment from "waiting for confirmation" to "confirmed"
+        appointmentService.confirmAppointment(appointmentId);
+
+        return "redirect:/doctor/schedule?date=" + workDate;
+    }
+
     // Show the diagnosis screen for one appointment (UC07 Record Diagnosis + UC08 Prescribe Medication)
     @GetMapping("/diagnosis/{appointmentId}")
     public String showDiagnosisForm(@PathVariable Long appointmentId, Model model) {

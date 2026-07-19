@@ -826,6 +826,33 @@ p {
     font-size: 0.75rem;
 }
 
+/* Table action buttons: equal width so the action column lines up neatly */
+.btn-action {
+    min-width: 108px;
+    justify-content: center;
+}
+
+/* Blue button (used for the "Xác nhận" action, matching the "Đã xác nhận" badge) */
+.btn-info {
+    background-color: var(--info);
+    color: var(--white);
+}
+
+.btn-info:hover {
+    background-color: #2563eb;
+}
+
+/* Light outline button (used for a subtle secondary action like "Xem / Sửa") */
+.btn-outline {
+    background-color: var(--white);
+    color: var(--primary-600);
+    border-color: var(--primary-600);
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-50);
+}
+
 /* -----------------------------------------------------------------
    8. FORM
    ----------------------------------------------------------------- */

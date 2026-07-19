@@ -12,8 +12,10 @@ public interface AppointmentService {
     // Get today's upcoming (not yet examined) appointments for the dashboard preview
     List<Appointment> getUpcomingTodayAppointments(Long doctorId);
 
+    // Count today's patients waiting to be examined (PENDING + CONFIRMED)
     long countPendingToday(Long doctorId);
 
+    // Count today's patients that have already been examined (COMPLETED)
     long countCompletedToday(Long doctorId);
 
     // Get a doctor's appointments on a specific date, optionally filtered by status.
@@ -22,4 +24,7 @@ public interface AppointmentService {
 
     // Get one appointment by id together with patient, doctor and time slot details
     Appointment getById(Long appointmentId);
+
+    // Confirm a pending appointment (PENDING -> CONFIRMED) so it becomes ready to examine
+    void confirmAppointment(Long appointmentId);
 }

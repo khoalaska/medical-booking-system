@@ -11,7 +11,11 @@
 <!-- Main content injected into the shared layout -->
 <main class="page-content" layout:fragment="content">
 
-    <h2>Khám bệnh và ghi hồ sơ</h2>
+    <!-- Page title with a back button so the doctor can return without scrolling to the bottom -->
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <h2>Khám bệnh và ghi hồ sơ</h2>
+        <a th:href="@{/doctor/schedule}" class="btn btn-secondary">← Quay lại lịch khám</a>
+    </div>
 
     <!-- ============================================================
          Patient information panel (always shown at the top)
@@ -123,8 +127,6 @@
 
             <!-- Delete opens a confirmation page first (safer than deleting right away) -->
             <a th:href="@{/doctor/diagnosis/{id}/delete(id=${appointment.id})}" class="btn btn-danger">Xóa hồ sơ</a>
-
-            <a th:href="@{/doctor/schedule}" class="btn btn-secondary">Quay lại lịch khám</a>
         </div>
     </div>
 
@@ -216,11 +218,11 @@
             </table>
         </div>
 
-        <!-- Action buttons: the label changes between create and edit -->
+        <!-- Action buttons: the label changes between create and edit.
+             The back button lives at the top of the page, so there is no "Quay lại" here. -->
         <div class="mt-4">
             <button th:if="${formMode == 'create'}" type="submit" class="btn btn-primary">Lưu hồ sơ khám</button>
             <button th:if="${formMode == 'edit'}" type="submit" class="btn btn-primary">Cập nhật hồ sơ</button>
-            <a th:href="@{/doctor/schedule}" class="btn btn-secondary">Quay lại</a>
         </div>
     </form>
 

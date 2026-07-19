@@ -11,38 +11,48 @@
 <!-- Main content injected into the shared layout -->
 <main class="page-content" layout:fragment="content">
 
-    <h2>Lịch khám trong ngày</h2>
+    <h2>Lịch khám</h2>
 
-    <!-- Filter: doctor picks a day and (optionally) a status.
-         The form submits by GET so both values stay in the URL. -->
+    <!-- One card holds the toolbar (title + filter) and the appointment table together -->
     <div class="card mt-4">
-        <div class="card-header">
-            <h4 class="card-title">Bộ lọc lịch khám</h4>
-        </div>
-        <form method="get" th:action="@{/doctor/schedule}" class="date-form">
-            <input type="date" name="date" class="form-control" th:value="${selectedDate}">
 
-            <!-- Status filter; the chosen status stays selected after submitting -->
-            <select name="status" class="form-select" style="max-width: 200px;">
-                <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}">Tất cả trạng thái</option>
-                <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Chờ xác nhận</option>
-                <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Đã xác nhận</option>
-                <option value="COMPLETED" th:selected="${selectedStatus == 'COMPLETED'}">Đã khám</option>
-                <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Đã hủy</option>
-            </select>
-
-            <button type="submit" class="btn btn-primary">Xem lịch</button>
-        </form>
-    </div>
-
-    <!-- Appointment list for the selected date -->
-    <div class="card mt-4">
-        <div class="card-header">
+        <!-- Toolbar: title with the appointment count on the left, the filter form on the right.
+             flex-wrap lets the filter drop to a new line on small screens. -->
+        <div class="card-header" style="flex-wrap: wrap; gap: 16px;">
             <h4 class="card-title">
-                Danh sách lịch hẹn ngày
+                Lịch hẹn ngày
                 <span th:text="${#temporals.format(selectedDate, 'dd/MM/yyyy')}">01/01/2025</span>
+                <span class="text-muted" style="font-weight: 400;">
+                    (<span th:text="${#lists.size(appointments)}">0</span> lịch hẹn)
+                </span>
             </h4>
+
+            <!-- Filter: pick a date and a status, then submit by GET so both stay in the URL -->
+            <form method="get" th:action="@{/doctor/schedule}"
+                  style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;">
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Ngày khám</label>
+                    <input type="date" name="date" class="form-control" th:value="${selectedDate}"
+                           style="max-width: 180px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Trạng thái</label>
+                    <!-- The chosen status stays selected after submitting -->
+                    <select name="status" class="form-select" style="max-width: 180px;">
+                        <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}">Tất cả</option>
+                        <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Chờ xác nhận</option>
+                        <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Đã xác nhận</option>
+                        <option value="COMPLETED" th:selected="${selectedStatus == 'COMPLETED'}">Đã khám</option>
+                        <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Đã hủy</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Lọc</button>
+            </form>
         </div>
+
         <table class="data-table">
             <thead>
             <tr>
@@ -50,16 +60,18 @@
                 <th>Bệnh nhân</th>
                 <th>Lý do khám</th>
                 <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <!-- Inline style so this beats ".data-table thead th { text-align: left }"
+                     and the header lines up with the right-aligned action buttons -->
+                <th style="text-align: right;">Thao tác</th>
             </tr>
             </thead>
             <tbody>
             <!-- Render one row for each appointment of the day.
-                 canExamine: appointment is waiting to be examined (PENDING or CONFIRMED).
-                 canOpen: appointment is not cancelled, so its diagnosis screen can be opened. -->
+                 Each status has its own action: pending -> confirm, confirmed -> examine, completed -> view/edit. -->
             <tr th:each="appointment : ${appointments}"
-                th:with="canExamine=${appointment.status.name() == 'PENDING' or appointment.status.name() == 'CONFIRMED'},
-                         canOpen=${appointment.status.name() != 'CANCELLED'}">
+                th:with="isPending=${appointment.status.name() == 'PENDING'},
+                         isConfirmed=${appointment.status.name() == 'CONFIRMED'},
+                         isCompleted=${appointment.status.name() == 'COMPLETED'}">
 
                 <!-- Time range of the booked slot -->
                 <td>
@@ -70,12 +82,12 @@
 
                 <!-- Patient full name -->
                 <td>
-                    <!-- When the appointment is not cancelled, the name links to its diagnosis screen -->
-                    <a th:if="${canOpen}"
+                    <!-- The name links to the diagnosis screen only after the appointment is confirmed -->
+                    <a th:if="${isConfirmed or isCompleted}"
                        th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
                        th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</a>
-                    <!-- Cancelled appointments show the name as plain text -->
-                    <span th:unless="${canOpen}" th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</span>
+                    <!-- Still waiting for confirmation, or cancelled: show plain text -->
+                    <span th:unless="${isConfirmed or isCompleted}" th:text="${appointment.patient.user.fullName}">Nguyễn Văn A</span>
                 </td>
 
                 <!-- Reason for visit -->
@@ -94,16 +106,25 @@
                     <span th:case="'CANCELLED'" class="badge badge-danger">Đã hủy</span>
                 </td>
 
-                <!-- Action column -->
+                <!-- Action column: one action per status.
+                     A flex wrapper right-aligns the button so the form-wrapped button and the link
+                     buttons all sit on the same right edge (btn-action keeps them the same width). -->
                 <td>
-                    <!-- "Khám" button opens the diagnosis screen for a not-yet-examined appointment -->
-                    <a th:if="${canExamine}"
-                       th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
-                       class="btn btn-primary btn-sm">Khám</a>
-                    <!-- "Xem / Sửa" opens the saved record of an already examined appointment -->
-                    <a th:if="${appointment.status.name() == 'COMPLETED'}"
-                       th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
-                       class="btn btn-secondary btn-sm">Xem / Sửa</a>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <!-- Pending: the doctor confirms the appointment first (POST changes data) -->
+                        <form th:if="${isPending}" method="post"
+                              th:action="@{/doctor/schedule/confirm/{id}(id=${appointment.id})}">
+                            <button type="submit" class="btn btn-info btn-sm btn-action">Xác nhận</button>
+                        </form>
+                        <!-- Confirmed: the doctor examines the patient -->
+                        <a th:if="${isConfirmed}"
+                           th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
+                           class="btn btn-primary btn-sm btn-action">Khám</a>
+                        <!-- Completed: view or edit the saved record -->
+                        <a th:if="${isCompleted}"
+                           th:href="@{/doctor/diagnosis/{id}(id=${appointment.id})}"
+                           class="btn btn-outline btn-sm btn-action">Xem / Sửa</a>
+                    </div>
                 </td>
             </tr>
 
