@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      th:with="activeMenu='schedules'">
+<head>
+    <title th:text="${pageTitle}">Thêm/Sửa Lịch làm việc</title>
+</head>
+<body>
+
+<main class="page-content" layout:fragment="content">
+    <div class="card" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 th:text="${pageTitle}" style="margin-bottom: 20px;">Thêm/Sửa Lịch làm việc</h2>
+
+        <!-- Error Message Alert -->
+        <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}" style="margin-bottom: 20px; color: red;">
+            Đã xảy ra lỗi.
+        </div>
+
+        <form th:action="@{/admin/schedules/save}" th:object="${workSchedule}" method="post">
+            <!-- Hidden Fields -->
+            <input type="hidden" th:field="*{id}" />
+
+            <!-- Doctor Selection -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="doctorId" style="display: block; font-weight: bold; margin-bottom: 5px;">Bác sĩ *</label>
+                <select id="doctorId" name="doctorId" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required>
+                    <option value="" disabled th:selected="${workSchedule.doctor == null}">-- Chọn bác sĩ --</option>
+                    <option th:each="d : ${doctors}" 
+                            th:value="${d.id}" 
+                            th:text="${d.user.fullName}" 
+                            th:selected="${workSchedule.doctor != null && workSchedule.doctor.id == d.id}"></option>
+                </select>
+            </div>
+
+            <!-- Work Date -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="workDate" style="display: block; font-weight: bold; margin-bottom: 5px;">Ngày làm việc *</label>
+                <input type="date" id="workDate" th:field="*{workDate}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+            </div>
+
+            <!-- Shift Selection -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="shift" style="display: block; font-weight: bold; margin-bottom: 5px;">Ca làm việc *</label>
+                <select id="shift" th:field="*{shift}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required>
+                    <option th:each="s : ${shiftTypes}" 
+                            th:value="${s}" 
+                            th:text="${s.name() == 'MORNING' ? 'Ca sáng' : (s.name() == 'AFTERNOON' ? 'Ca chiều' : 'Ca tối')}"></option>
+                </select>
+            </div>
+
+            <!-- Available Status -->
+            <div class="form-group" style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="available" th:field="*{available}" style="width: 18px; height: 18px; cursor: pointer;" />
+                <label for="available" style="font-weight: bold; cursor: pointer; margin: 0;">Đang hoạt động (cho phép đặt lịch)</label>
+            </div>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">Lưu</button>
+                <a th:href="@{/admin/schedules}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit; box-sizing: border-box;">Hủy</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+</body>
+</html>

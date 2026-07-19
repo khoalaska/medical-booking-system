@@ -1,10 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      th:with="activeMenu='doctors'">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title th:text="${pageTitle}">Thêm/Sửa thông tin Bác sĩ</title>
 </head>
 <body>
+
+<main class="page-content" layout:fragment="content">
+    <div class="card" style="max-width: 700px; margin: 0 auto; padding: 20px;">
+        <h2 th:text="${pageTitle}" style="margin-bottom: 20px;">Thêm/Sửa thông tin Bác sĩ</h2>
+
+        <!-- Error Message Alert -->
+        <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}" style="margin-bottom: 20px; color: red;">
+            Đã xảy ra lỗi.
+        </div>
+
+        <form th:action="@{/admin/doctors/save}" th:object="${doctorForm}" method="post">
+            <!-- Hidden Fields -->
+            <input type="hidden" th:field="*{id}" />
+            <input type="hidden" th:field="*{userId}" />
+
+            <!-- PHẦN THÔNG TIN TÀI KHOẢN -->
+            <div style="margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <h3 style="margin-bottom: 15px; color: #333;">Thông tin tài khoản</h3>
+
+                <!-- Full Name -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="fullName" style="display: block; font-weight: bold; margin-bottom: 5px;">Họ và tên *</label>
+                    <input type="text" id="fullName" th:field="*{fullName}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+                    <span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;">
+                        Lỗi họ tên
+                    </span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="email" style="display: block; font-weight: bold; margin-bottom: 5px;">Email *</label>
+                    <input type="email" id="email" th:field="*{email}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;">
+                        Lỗi email
+                    </span>
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="phone" style="display: block; font-weight: bold; margin-bottom: 5px;">Số điện thoại *</label>
+                    <input type="text" id="phone" th:field="*{phone}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+                    <span th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;">
+                        Lỗi số điện thoại
+                    </span>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="password" style="display: block; font-weight: bold; margin-bottom: 5px;" 
+                           th:text="${isEdit} ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu *'">Mật khẩu *</label>
+                    <input type="password" id="password" th:field="*{password}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" 
+                           th:placeholder="${isEdit} ? 'Để trống nếu không muốn đổi mật khẩu' : 'Nhập mật khẩu cho tài khoản bác sĩ'" />
+                </div>
+            </div>
+
+            <!-- PHẦN THÔNG TIN CHUYÊN MÔN -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="margin-bottom: 15px; color: #333;">Thông tin chuyên môn</h3>
+
+                <!-- Department Selection -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="departmentId" style="display: block; font-weight: bold; margin-bottom: 5px;">Khoa</label>
+                    <select id="departmentId" th:field="*{departmentId}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                        <option value="">-- Chưa phân khoa --</option>
+                        <option th:each="dept : ${departments}" 
+                                th:value="${dept.id}" 
+                                th:text="${dept.name}"></option>
+                    </select>
+                </div>
+
+                <!-- Specialization -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="specialization" style="display: block; font-weight: bold; margin-bottom: 5px;">Chuyên khoa *</label>
+                    <input type="text" id="specialization" th:field="*{specialization}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+                    <span th:if="${#fields.hasErrors('specialization')}" th:errors="*{specialization}" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;">
+                        Lỗi chuyên khoa
+                    </span>
+                </div>
+
+                <!-- Bio -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="bio" style="display: block; font-weight: bold; margin-bottom: 5px;">Giới thiệu / Tiểu sử</label>
+                    <textarea id="bio" th:field="*{bio}" class="form-control" rows="4" style="width: 100%; padding: 8px; box-sizing: border-box;"></textarea>
+                </div>
+
+                <!-- Experience Years -->
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="experienceYears" style="display: block; font-weight: bold; margin-bottom: 5px;">Số năm kinh nghiệm</label>
+                    <input type="number" id="experienceYears" th:field="*{experienceYears}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" min="0" />
+                    <span th:if="${#fields.hasErrors('experienceYears')}" th:errors="*{experienceYears}" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;">
+                        Lỗi số năm kinh nghiệm
+                    </span>
+                </div>
+
+                <!-- Rating (Readonly for edit mode) -->
+                <div th:if="${isEdit}" class="form-group" style="margin-bottom: 20px;">
+                    <p style="font-size: 14px; margin: 0; color: #555;">
+                        Đánh giá hiện tại: <strong th:text="${doctorForm.rating} + ' / 5.0'">0.0 / 5.0</strong> ⭐
+                    </p>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">Lưu</button>
+                <a th:href="@{/admin/doctors}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit; box-sizing: border-box;">Hủy</a>
+            </div>
+        </form>
+    </div>
+</main>
 
 </body>
 </html>

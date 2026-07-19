@@ -42,7 +42,7 @@ public class Doctor {
     @Builder.Default
     private List<WorkSchedule> workSchedules = new ArrayList<>();
 
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "doctor")
     @Builder.Default
     private List<Appointment> appointments = new ArrayList<>();
 }

@@ -17,7 +17,7 @@
             Đã xảy ra lỗi.
         </div>
 
-        <form th:action="@{/departments/save}" th:object="${department}" method="post">
+        <form th:action="@{/admin/departments/save}" th:object="${department}" method="post">
             <!-- Hidden field for ID -->
             <input type="hidden" th:field="*{id}" />
 
@@ -51,7 +51,7 @@
             <!-- Buttons -->
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" class="btn btn-primary">Lưu</button>
-                <a th:href="@{/departments}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit; box-sizing: border-box;">Hủy</a>
+                <a th:href="@{/admin/departments}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit; box-sizing: border-box;">Hủy</a>
             </div>
         </form>
     </div>

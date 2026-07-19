@@ -36,7 +36,7 @@ public class WorkSchedule {
     @Builder.Default
     private ShiftType shift = ShiftType.MORNING;
 
-    @OneToMany(mappedBy = "workSchedule", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "workSchedule")
     @Builder.Default
     private List<TimeSlot> timeSlots = new ArrayList<>();
 }

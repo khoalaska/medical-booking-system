@@ -14,6 +14,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -87,5 +89,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
         return departmentRepository.existsByNameIgnoreCase(name);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Department> getAllForDropdown() {
+        return departmentRepository.findAllByOrderByNameAsc();
     }
 }

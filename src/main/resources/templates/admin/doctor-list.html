@@ -1,10 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      th:with="activeMenu='doctors'">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Quản lý Bác sĩ</title>
 </head>
 <body>
+
+<main class="page-content" layout:fragment="content">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>Quản lý Bác sĩ</h2>
+            <a th:href="@{/admin/doctors/new}" class="btn btn-primary">Thêm mới bác sĩ</a>
+        </div>
+
+        <!-- Success Message -->
+        <div th:if="${successMessage != null}" class="alert alert-success" th:text="${successMessage}">
+            Thao tác thành công.
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}">
+            Đã xảy ra lỗi.
+        </div>
+
+        <!-- Filter Box -->
+        <div class="search-box" style="margin-bottom: 20px;">
+            <form th:action="@{/admin/doctors}" method="get" style="display: flex; gap: 10px; align-items: center;">
+                <input type="hidden" name="sortBy" th:value="${sortBy}" />
+                <input type="hidden" name="sortDir" th:value="${sortDir}" />
+                
+                <input type="text" name="keyword" th:value="${keyword}" class="form-control" placeholder="Tìm theo tên bác sĩ..." style="flex: 2; padding: 8px;" />
+                
+                <select name="departmentId" class="form-control" style="flex: 1; padding: 8px;">
+                    <option value="">-- Tất cả khoa --</option>
+                    <option th:each="dept : ${departments}" 
+                            th:value="${dept.id}" 
+                            th:text="${dept.name}" 
+                            th:selected="${departmentId != null && departmentId == dept.id}"></option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a th:href="@{/admin/doctors}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit;">Làm mới</a>
+            </form>
+        </div>
+
+        <!-- Doctor Table -->
+        <div class="table-responsive">
+            <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #ddd; text-align: left;">
+                        <th style="padding: 10px;">
+                            <a th:href="@{/admin/doctors(keyword=${keyword}, departmentId=${departmentId}, sortBy='id', sortDir=${reverseSortDir})}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                                ID <span th:if="${sortBy == 'id'}" th:text="${sortDir == 'asc' ? '▲' : '▼'}"></span>
+                            </a>
+                        </th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Họ tên</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Email</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">SĐT</th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Khoa</th>
+                        <th style="padding: 10px;">
+                            <a th:href="@{/admin/doctors(keyword=${keyword}, departmentId=${departmentId}, sortBy='specialization', sortDir=${reverseSortDir})}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                                Chuyên khoa <span th:if="${sortBy == 'specialization'}" th:text="${sortDir == 'asc' ? '▲' : '▼'}"></span>
+                            </a>
+                        </th>
+                        <th style="padding: 10px; font-weight: bold; color: inherit;">Kinh nghiệm</th>
+                        <th style="padding: 10px;">
+                            <a th:href="@{/admin/doctors(keyword=${keyword}, departmentId=${departmentId}, sortBy='rating', sortDir=${reverseSortDir})}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                                Đánh giá <span th:if="${sortBy == 'rating'}" th:text="${sortDir == 'asc' ? '▲' : '▼'}"></span>
+                            </a>
+                        </th>
+                        <th style="padding: 10px; text-align: center; font-weight: bold; color: inherit;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(doctors)}">
+                        <td colspan="9" style="text-align: center; padding: 20px; color: #777;">Không có bác sĩ nào</td>
+                    </tr>
+                    <tr th:each="doc : ${doctors}" style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px;" th:text="${doc.id}">1</td>
+                        <td style="padding: 10px; font-weight: bold;" th:text="${doc.user.fullName}">Tên bác sĩ</td>
+                        <td style="padding: 10px;" th:text="${doc.user.email}">email@example.com</td>
+                        <td style="padding: 10px;" th:text="${doc.user.phone}">0123456789</td>
+                        <td style="padding: 10px;" th:text="${doc.department != null ? doc.department.name : 'Chưa phân khoa'}">Khoa</td>
+                        <td style="padding: 10px;" th:text="${doc.specialization}">Chuyên khoa</td>
+                        <td style="padding: 10px;" th:text="${doc.experienceYears != null ? doc.experienceYears + ' năm' : 'Chưa cập nhật'}">0 năm</td>
+                        <td style="padding: 10px; font-weight: bold;" th:text="${#numbers.formatDecimal(doc.rating, 1, 1)} + ' ⭐'">0.0 ⭐</td>
+                        <td style="padding: 10px; text-align: center; display: flex; gap: 10px; justify-content: center; align-items: center;">
+                            <a th:href="@{/admin/doctors/edit/{id}(id=${doc.id})}" class="btn btn-secondary" style="font-size: 13px; text-decoration: none; padding: 5px 10px; border-radius: 4px;">Sửa</a>
+                            <a th:href="@{/admin/doctors/delete/{id}(id=${doc.id})}" class="btn btn-danger" style="font-size: 13px; text-decoration: none; padding: 5px 10px; border-radius: 4px;" 
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa bác sĩ này? Tài khoản đăng nhập của bác sĩ cũng sẽ bị xóa.')">Xóa</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination & Summary Info -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+            <div>
+                Tổng số bản ghi: <strong th:text="${totalItems}">0</strong>
+            </div>
+            
+            <div class="pagination-wrapper" th:if="${totalPages > 1}">
+                <ul class="pagination" style="display: flex; list-style: none; gap: 5px; padding: 0; margin: 0;">
+                    <!-- Previous Page -->
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="${currentPage == 0} ? '#' : @{/admin/doctors(page=${currentPage - 1}, keyword=${keyword}, departmentId=${departmentId}, sortBy=${sortBy}, sortDir=${sortDir})}"
+                           th:onclick="${currentPage == 0} ? 'return false;' : null"
+                           style="padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;">Trước</a>
+                    </li>
+                    
+                    <!-- Page Numbers -->
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                        <a class="page-link" th:href="@{/admin/doctors(page=${i}, keyword=${keyword}, departmentId=${departmentId}, sortBy=${sortBy}, sortDir=${sortDir})}" th:text="${i + 1}"
+                           th:style="${currentPage == i} ? 'padding: 6px 12px; border: 1px solid #007bff; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 4px;' : 'padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;'">1</a>
+                    </li>
+                    
+                    <!-- Next Page -->
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="${currentPage == totalPages - 1} ? '#' : @{/admin/doctors(page=${currentPage + 1}, keyword=${keyword}, departmentId=${departmentId}, sortBy=${sortBy}, sortDir=${sortDir})}"
+                           th:onclick="${currentPage == totalPages - 1} ? 'return false;' : null"
+                           style="padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;">Sau</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
 
 </body>
 </html>

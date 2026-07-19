@@ -15,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Sau này làm register sẽ dùng để kiểm tra số điện thoại bị trùng chưa
     boolean existsByPhone(String phone);
+
+    // Kiểm tra trùng email khi tạo User mới (dùng ở module Admin - Doctor)
+    boolean existsByEmail(String email);
 }
