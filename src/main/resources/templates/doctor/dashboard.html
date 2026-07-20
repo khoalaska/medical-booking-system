@@ -5,6 +5,8 @@
       lang="vi">
 <head>
     <title>Dashboard Bác sĩ</title>
+    <!-- CSS riêng của module bác sĩ -->
+    <link rel="stylesheet" th:href="@{/css/doctor.css}">
 </head>
 <body>
 
@@ -14,7 +16,7 @@
     <h2>Chào mừng Bác sĩ <span th:text="${doctorName}">Nguyễn Văn A</span></h2>
 
     <!-- Overview stat cards: a quick glance at today's numbers -->
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+    <div class="stat-grid">
         <div class="card">
             <p class="text-muted">Lịch hẹn hôm nay</p>
             <h3 th:text="${todayAppointments}">0</h3>

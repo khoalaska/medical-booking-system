@@ -5,6 +5,8 @@
       lang="vi">
 <head>
     <title>Khám bệnh</title>
+    <!-- CSS riêng của module bác sĩ -->
+    <link rel="stylesheet" th:href="@{/css/doctor.css}">
 </head>
 <body>
 
@@ -12,7 +14,7 @@
 <main class="page-content" layout:fragment="content">
 
     <!-- Page title with a back button so the doctor can return without scrolling to the bottom -->
-    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+    <div class="page-header-row">
         <h2>Khám bệnh và ghi hồ sơ</h2>
         <a th:href="@{/doctor/schedule}" class="btn btn-secondary">← Quay lại lịch khám</a>
     </div>

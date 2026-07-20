@@ -5,6 +5,8 @@
       lang="vi">
 <head>
     <title>Lịch khám</title>
+    <!-- CSS riêng của module bác sĩ -->
+    <link rel="stylesheet" th:href="@{/css/doctor.css}">
 </head>
 <body>
 
@@ -18,29 +20,27 @@
 
         <!-- Toolbar: title with the appointment count on the left, the filter form on the right.
              flex-wrap lets the filter drop to a new line on small screens. -->
-        <div class="card-header" style="flex-wrap: wrap; gap: 16px;">
+        <div class="card-header toolbar">
             <h4 class="card-title">
                 Lịch hẹn ngày
                 <span th:text="${#temporals.format(selectedDate, 'dd/MM/yyyy')}">01/01/2025</span>
-                <span class="text-muted" style="font-weight: 400;">
+                <span class="text-muted title-count">
                     (<span th:text="${#lists.size(appointments)}">0</span> lịch hẹn)
                 </span>
             </h4>
 
             <!-- Filter: pick a date and a status, then submit by GET so both stay in the URL -->
-            <form method="get" th:action="@{/doctor/schedule}"
-                  style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;">
+            <form method="get" th:action="@{/doctor/schedule}" class="filter-form">
 
-                <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-group filter-field">
                     <label class="form-label">Ngày khám</label>
-                    <input type="date" name="date" class="form-control" th:value="${selectedDate}"
-                           style="max-width: 180px;">
+                    <input type="date" name="date" class="form-control" th:value="${selectedDate}">
                 </div>
 
-                <div class="form-group" style="margin-bottom: 0;">
+                <div class="form-group filter-field">
                     <label class="form-label">Trạng thái</label>
                     <!-- The chosen status stays selected after submitting -->
-                    <select name="status" class="form-select" style="max-width: 180px;">
+                    <select name="status" class="form-select">
                         <option value="" th:selected="${selectedStatus == null or selectedStatus == ''}">Tất cả</option>
                         <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Chờ xác nhận</option>
                         <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Đã xác nhận</option>
@@ -60,9 +60,9 @@
                 <th>Bệnh nhân</th>
                 <th>Lý do khám</th>
                 <th>Trạng thái</th>
-                <!-- Inline style so this beats ".data-table thead th { text-align: left }"
-                     and the header lines up with the right-aligned action buttons -->
-                <th style="text-align: right;">Thao tác</th>
+                <!-- col-action (doctor.css) right-aligns this header so it lines up
+                     with the right-aligned action buttons below -->
+                <th class="col-action">Thao tác</th>
             </tr>
             </thead>
             <tbody>
@@ -110,7 +110,7 @@
                      A flex wrapper right-aligns the button so the form-wrapped button and the link
                      buttons all sit on the same right edge (btn-action keeps them the same width). -->
                 <td>
-                    <div style="display: flex; justify-content: flex-end;">
+                    <div class="action-cell">
                         <!-- Pending: the doctor confirms the appointment first (POST changes data) -->
                         <form th:if="${isPending}" method="post"
                               th:action="@{/doctor/schedule/confirm/{id}(id=${appointment.id})}">
