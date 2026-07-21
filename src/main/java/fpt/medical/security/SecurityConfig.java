@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/error",
                                 "/auth/login",
                                 "/auth/register",
+                                "/patients/doctors",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**"

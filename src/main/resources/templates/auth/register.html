@@ -3,9 +3,11 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/auth-layout}">
+
 <head>
     <title>Đăng ký</title>
 </head>
+
 <body>
 
 <div layout:fragment="content">
@@ -28,7 +30,9 @@
                        th:value="${_csrf.token}">
 
                 <div class="form-group">
-                    <label for="fullName">Họ và tên</label>
+                    <label for="fullName">
+                        Họ và tên
+                    </label>
 
                     <input type="text"
                            id="fullName"
@@ -44,7 +48,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="phone">Số điện thoại</label>
+                    <label for="phone">
+                        Số điện thoại
+                    </label>
 
                     <input type="text"
                            id="phone"
@@ -59,10 +65,32 @@
                     </p>
                 </div>
 
+                <!-- Field Email mới -->
+                <div class="form-group">
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input type="email"
+                           id="email"
+                           th:field="*{email}"
+                           placeholder="example@gmail.com"
+                           maxlength="255"
+                           autocomplete="email">
+
+                    <p class="field-error"
+                       th:if="${#fields.hasErrors('email')}"
+                       th:errors="*{email}">
+                    </p>
+                </div>
+
                 <div class="form-group">
                     <label for="password">
                         Mật khẩu
-                        <span class="password-note">Gồm các số từ 0-9</span>
+
+                        <span class="password-note">
+                            Gồm các số từ 0-9
+                        </span>
                     </label>
 
                     <input type="password"
@@ -80,7 +108,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="confirmPassword">Nhập lại mật khẩu</label>
+                    <label for="confirmPassword">
+                        Nhập lại mật khẩu
+                    </label>
 
                     <input type="password"
                            id="confirmPassword"
@@ -96,7 +126,8 @@
                     </p>
                 </div>
 
-                <button type="submit" class="register-button">
+                <button type="submit"
+                        class="register-button">
                     Đăng ký ngay
                 </button>
 
@@ -104,11 +135,13 @@
 
             <p class="login-text">
                 Đã có tài khoản?
-                <a th:href="@{/auth/login}">Đăng nhập</a>
+
+                <a th:href="@{/auth/login}">
+                    Đăng nhập
+                </a>
             </p>
 
         </div>
-
     </div>
 
 </div>

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -32,10 +32,10 @@ public class AuthController {
     @GetMapping("/register")
     public String showRegisterPage(Model model) {
 
-        /*
-            Tạo object rỗng để register.html dùng th:object.
-        */
-        model.addAttribute("registerDTO", new RegisterDTO());
+        model.addAttribute(
+                "registerDTO",
+                new RegisterDTO()
+        );
 
         return "auth/register";
     }
@@ -44,25 +44,40 @@ public class AuthController {
         Xử lý khi người dùng bấm nút Đăng ký.
     */
     @PostMapping("/register")
-    public String processRegister(@ModelAttribute("registerDTO") RegisterDTO registerDTO,
-                                  BindingResult bindingResult) {
+    public String processRegister(
+            @ModelAttribute("registerDTO")
+            RegisterDTO registerDTO,
+            BindingResult bindingResult
+    ) {
 
         /*
-            1. Làm sạch họ tên và số điện thoại.
+            1. Chuẩn hóa dữ liệu.
         */
-        registerDTO.setFullName(cleanText(registerDTO.getFullName()));
-        registerDTO.setPhone(normalizePhone(registerDTO.getPhone()));
+        registerDTO.setFullName(
+                cleanText(registerDTO.getFullName())
+        );
+
+        registerDTO.setPhone(
+                normalizePhone(registerDTO.getPhone())
+        );
+
+        registerDTO.setEmail(
+                normalizeEmail(registerDTO.getEmail())
+        );
 
         /*
-            2. Check họ và tên.
+            2. Validate họ và tên.
         */
         if (isBlank(registerDTO.getFullName())) {
+
             bindingResult.rejectValue(
                     "fullName",
                     "fullName.blank",
                     "Vui lòng nhập họ và tên"
             );
+
         } else if (registerDTO.getFullName().length() > 255) {
+
             bindingResult.rejectValue(
                     "fullName",
                     "fullName.tooLong",
@@ -71,22 +86,20 @@ public class AuthController {
         }
 
         /*
-            3. Check số điện thoại Việt Nam.
-
-            Sai vì bất cứ lý do gì thì hiện:
-            Sai form số Việt Nam
+            3. Validate số điện thoại.
         */
         if (!isValidVietnamPhone(registerDTO.getPhone())) {
+
             bindingResult.rejectValue(
                     "phone",
                     "phone.invalid",
                     "Sai form số Việt Nam"
             );
-        } else if (userService.existsByPhone(registerDTO.getPhone())) {
 
-            /*
-                Chỉ khi số điện thoại đúng form mới check trùng DB.
-            */
+        } else if (
+                userService.existsByPhone(registerDTO.getPhone())
+        ) {
+
             bindingResult.rejectValue(
                     "phone",
                     "phone.duplicate",
@@ -95,20 +108,48 @@ public class AuthController {
         }
 
         /*
-            4. Check mật khẩu.
+            4. Validate email tại Service.
+        */
+        if (!userService.isValidEmail(registerDTO.getEmail())) {
 
-            Yêu cầu:
+            bindingResult.rejectValue(
+                    "email",
+                    "email.invalid",
+                    "Email không đúng định dạng"
+            );
+
+        } else if (
+                userService.existsByEmail(registerDTO.getEmail())
+        ) {
+
+            bindingResult.rejectValue(
+                    "email",
+                    "email.duplicate",
+                    "Email đã được sử dụng"
+            );
+        }
+
+        /*
+            5. Validate mật khẩu.
+
+            Mật khẩu:
             - Chỉ gồm số 0-9
             - Ít nhất 6 ký tự
             - Tối đa 255 ký tự
         */
         if (isBlank(registerDTO.getPassword())) {
+
             bindingResult.rejectValue(
                     "password",
                     "password.blank",
                     "Vui lòng nhập mật khẩu"
             );
-        } else if (!registerDTO.getPassword().matches("^[0-9]{6,255}$")) {
+
+        } else if (
+                !registerDTO.getPassword()
+                        .matches("^[0-9]{6,255}$")
+        ) {
+
             bindingResult.rejectValue(
                     "password",
                     "password.invalid",
@@ -117,15 +158,21 @@ public class AuthController {
         }
 
         /*
-            5. Check nhập lại mật khẩu.
+            6. Validate nhập lại mật khẩu.
         */
         if (isBlank(registerDTO.getConfirmPassword())) {
+
             bindingResult.rejectValue(
                     "confirmPassword",
                     "confirmPassword.blank",
                     "Vui lòng nhập lại mật khẩu"
             );
-        } else if (!registerDTO.getConfirmPassword().equals(registerDTO.getPassword())) {
+
+        } else if (
+                !registerDTO.getConfirmPassword()
+                        .equals(registerDTO.getPassword())
+        ) {
+
             bindingResult.rejectValue(
                     "confirmPassword",
                     "confirmPassword.notMatch",
@@ -134,56 +181,34 @@ public class AuthController {
         }
 
         /*
-            6. Nếu có lỗi thì quay lại màn đăng ký.
-            Xóa mật khẩu để không giữ lại trên form.
+            7. Nếu có lỗi thì trở lại form đăng ký.
         */
         if (bindingResult.hasErrors()) {
+
             registerDTO.setPassword("");
             registerDTO.setConfirmPassword("");
+
             return "auth/register";
         }
 
         /*
-            7. Nếu đúng hết thì lưu DB.
+            8. Lưu tài khoản.
         */
         userService.registerPatient(registerDTO);
 
-        /*
-            8. Đăng ký xong quay về login.
-        */
         return "redirect:/auth/login";
     }
 
-    /*
-        Check số điện thoại Việt Nam.
-
-        Cho phép người dùng nhập:
-        0987654321
-        0987 654 321
-        0987-654-321
-        +84987654321
-        84987654321
-
-        Sau khi normalize thì phải:
-        - Có 10 số
-        - Bắt đầu bằng 03, 05, 07, 08, 09
-    */
     private boolean isValidVietnamPhone(String phone) {
         if (isBlank(phone)) {
             return false;
         }
 
-        return phone.matches("^0(3|5|7|8|9)[0-9]{8}$");
+        return phone.matches(
+                "^0(3|5|7|8|9)[0-9]{8}$"
+        );
     }
 
-    /*
-        Chuẩn hóa số điện thoại.
-
-        0987 654 321  -> 0987654321
-        0987-654-321  -> 0987654321
-        +84987654321  -> 0987654321
-        84987654321   -> 0987654321
-    */
     private String normalizePhone(String phone) {
         if (phone == null) {
             return "";
@@ -191,20 +216,33 @@ public class AuthController {
 
         String cleanPhone = phone.trim();
 
-        cleanPhone = cleanPhone.replaceAll("[\\s.-]", "");
+        cleanPhone = cleanPhone.replaceAll(
+                "[\\s.-]",
+                ""
+        );
 
         if (cleanPhone.startsWith("+84")) {
-            cleanPhone = "0" + cleanPhone.substring(3);
+
+            cleanPhone =
+                    "0" + cleanPhone.substring(3);
+
         } else if (cleanPhone.startsWith("84")) {
-            cleanPhone = "0" + cleanPhone.substring(2);
+
+            cleanPhone =
+                    "0" + cleanPhone.substring(2);
         }
 
         return cleanPhone;
     }
 
-    /*
-        Xóa khoảng trắng đầu cuối.
-    */
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return "";
+        }
+
+        return email.trim().toLowerCase();
+    }
+
     private String cleanText(String text) {
         if (text == null) {
             return "";
@@ -213,9 +251,6 @@ public class AuthController {
         return text.trim();
     }
 
-    /*
-        Check rỗng.
-    */
     private boolean isBlank(String text) {
         return text == null || text.trim().isEmpty();
     }

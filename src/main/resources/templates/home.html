@@ -1,10 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/public-layout}">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Trang chủ</title>
 </head>
+
 <body>
+
+<main layout:fragment="content">
+
+    <section class="home-page">
+
+        <div class="home-page-container">
+
+            <!-- Chưa đăng nhập -->
+            <div class="home-auth-navigation"
+                 sec:authorize="isAnonymous()">
+
+                <a th:href="@{/auth/register}">
+                    Đăng ký mới
+                </a>
+
+                <span class="home-auth-divider"></span>
+
+                <a th:href="@{/auth/login}"
+                   class="home-auth-login">
+                    Đăng nhập
+                </a>
+
+            </div>
+
+            <!-- Bệnh nhân đã đăng nhập -->
+            <div class="home-account-navigation"
+                 sec:authorize="hasRole('PATIENT')">
+
+                <a th:href="@{/patients/profile}"
+                   class="home-profile-link">
+                    Hồ sơ cá nhân
+                </a>
+
+                <span class="home-auth-divider"></span>
+
+                <form th:action="@{/logout}"
+                      method="post">
+
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <button type="submit"
+                            class="home-logout-button">
+                        Đăng xuất
+                    </button>
+
+                </form>
+
+            </div>
+
+            <div class="home-content">
+
+                <h1>
+                    Đặt lịch và quản lý
+                    <br>
+                    khám bệnh trực tuyến
+                </h1>
+
+                <p class="home-description">
+                    Chủ động lựa chọn bác sĩ và thời gian khám phù hợp.
+                    Theo dõi lịch khám và thông tin sức khỏe dễ dàng
+                    trên hệ thống.
+                </p>
+
+                <div class="home-feature-list">
+
+                    <!-- Phải đăng nhập với ROLE_PATIENT -->
+                    <a th:href="@{/patients/book-appointment}"
+                       class="home-feature-card">
+
+                        <div class="home-feature-information">
+                            <h3>Đặt lịch khám</h3>
+
+                            <p>
+                                Lựa chọn chuyên khoa, bác sĩ và thời gian khám
+                            </p>
+                        </div>
+
+                        <span class="home-feature-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+                    <!-- Danh sách bác sĩ -->
+                    <a th:href="@{/patients/doctors}"
+                       class="home-feature-card">
+
+                        <div class="home-feature-information">
+                            <h3>Đội ngũ bác sĩ</h3>
+
+                            <p>
+                                Xem danh sách bác sĩ và chuyên khoa
+                            </p>
+                        </div>
+
+                        <span class="home-feature-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+                    <!-- Tạm thời quay về Home nếu chưa có URL thật -->
+
+                    <a th:href="@{/}"
+                       class="home-feature-card">
+
+                        <div class="home-feature-information">
+                            <h3>Hồ sơ sức khỏe</h3>
+
+                            <p>
+                                Theo dõi thông tin và kết quả khám bệnh
+                            </p>
+                        </div>
+
+                        <span class="home-feature-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+
+                    <!-- Tạm thời quay về Home nếu chưa có URL thật -->
+                    <a th:href="@{/}"
+                       class="home-feature-card">
+
+                        <div class="home-feature-information">
+                            <h3>Lịch khám</h3>
+
+                            <p>
+                                Theo dõi và quản lý các lịch khám đã đặt
+                            </p>
+                        </div>
+
+                        <span class="home-feature-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+                </div>
+
+                <div class="home-support-information">
+                    <span>Cần hỗ trợ đặt lịch?</span>
+
+                    <strong>
+                        Hotline: 1900 6422
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
 
 </body>
 </html>

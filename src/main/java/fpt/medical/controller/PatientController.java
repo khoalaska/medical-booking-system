@@ -6,6 +6,7 @@ import fpt.medical.entity.TimeSlot;
 import fpt.medical.enums.ShiftType;
 import fpt.medical.service.DepartmentService;
 import fpt.medical.service.DoctorService;
+import fpt.medical.service.UserService;
 import fpt.medical.service.WorkScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import fpt.medical.dto.UserProfileDTO;
+import fpt.medical.security.CustomUserDetails;
+import fpt.medical.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 
@@ -26,6 +36,7 @@ public class PatientController {
     private final DepartmentService departmentService;
     private final DoctorService doctorService;
     private final WorkScheduleService workScheduleService;
+    private final UserService userService;
 
     @GetMapping("/book-appointment")
     public String bookAppointment(
@@ -76,5 +87,90 @@ public class PatientController {
     @GetMapping("/doctors")
     public String doctorList() {
         return "patient/doctor-list";
+    }
+
+    @GetMapping("/profile")
+    public String showProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Model model
+    ) {
+
+        model.addAttribute(
+                "userProfileDTO",
+                userService.getProfile(
+                        userDetails.getUser().getId()
+                )
+        );
+
+        return "patient/profile";
+    }
+
+    @PostMapping("/profile")
+    public String updateProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+
+            @Valid
+            @ModelAttribute("userProfileDTO")
+            UserProfileDTO userProfileDTO,
+
+            BindingResult bindingResult,
+
+            RedirectAttributes redirectAttributes
+    ) {
+
+        if (bindingResult.hasErrors()) {
+            return "patient/profile";
+        }
+
+        try {
+
+            userService.updateProfile(
+                    userDetails.getUser().getId(),
+                    userProfileDTO
+            );
+
+        } catch (IllegalArgumentException exception) {
+
+            String message = exception.getMessage();
+
+            if ("Số điện thoại đã được sử dụng"
+                    .equals(message)) {
+
+                bindingResult.rejectValue(
+                        "phone",
+                        "phone.duplicate",
+                        message
+                );
+
+            } else if (
+                    "Email đã được sử dụng"
+                            .equals(message)
+                            || "Email không đúng định dạng"
+                            .equals(message)
+            ) {
+
+                bindingResult.rejectValue(
+                        "email",
+                        "email.invalid",
+                        message
+                );
+
+            } else {
+
+                bindingResult.reject(
+                        "profile.error",
+                        message
+                );
+            }
+
+            return "patient/profile";
+        }
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                "Cập nhật hồ sơ thành công"
+        );
+
+        return "redirect:/patients/profile";
     }
 }
