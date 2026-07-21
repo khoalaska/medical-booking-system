@@ -1,0 +1,135 @@
+/* ==================================================================
+   DOCTOR MODULE
+   CSS used only by the doctor screens:
+   dashboard, schedule, record diagnosis, patient history.
+   The color variables (--primary-600, --info, ...) come from style.css.
+   ================================================================== */
+
+/* ------------------------------------------------------------------
+   1. PAGE HEADER (title on the left, back button on the right)
+   ------------------------------------------------------------------ */
+.page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------------
+   2. DASHBOARD - grid of the three statistic cards
+   ------------------------------------------------------------------ */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+}
+
+/* On a narrow screen the three cards stack on top of each other */
+@media (max-width: 900px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ------------------------------------------------------------------
+   3. TOOLBAR AND FILTER (schedule screen)
+   ------------------------------------------------------------------ */
+
+/* Header row: table title on the left, filter form on the right.
+   flex-wrap lets the filter drop to a new line on small screens. */
+.toolbar {
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* The record count shown next to the table title (not bold like the title) */
+.title-count {
+    font-weight: 400;
+}
+
+/* Filter form: fields in a row, aligned by their bottom edge so the
+   button lines up with the inputs */
+.filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* One labelled field inside the filter form */
+.filter-field {
+    margin-bottom: 0;
+}
+
+.filter-field .form-control,
+.filter-field .form-select {
+    max-width: 180px;
+}
+
+/* ------------------------------------------------------------------
+   4. SIMPLE SEARCH FORM (patient history screen)
+   ------------------------------------------------------------------ */
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-form .form-control {
+    max-width: 260px;
+}
+
+/* ------------------------------------------------------------------
+   5. TABLE ACTION COLUMN
+   ------------------------------------------------------------------ */
+
+/* Right-align the action header. The extra class makes this selector
+   stronger than ".data-table thead th { text-align: left }". */
+.data-table thead th.col-action {
+    text-align: right;
+}
+
+/* Right-align the action button (works for both a link and a form) */
+.action-cell {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Every action button has the same width so the column stays tidy */
+.btn-action {
+    min-width: 108px;
+    justify-content: center;
+}
+
+/* Keep a form on the same line as the buttons next to it */
+.inline-form {
+    display: inline;
+}
+
+/* ------------------------------------------------------------------
+   6. EXTRA BUTTON COLORS USED BY THE DOCTOR SCREENS
+   ------------------------------------------------------------------ */
+
+/* Blue button for the "Xác nhận" action (matches the "Đã xác nhận" badge) */
+.btn-info {
+    background-color: var(--info);
+    color: var(--white);
+}
+
+.btn-info:hover {
+    background-color: #2563eb;
+}
+
+/* Light outline button for a subtle secondary action like "Xem / Sửa" */
+.btn-outline {
+    background-color: var(--white);
+    color: var(--primary-600);
+    border-color: var(--primary-600);
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-50);
+}

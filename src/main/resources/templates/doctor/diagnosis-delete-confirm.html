@@ -5,6 +5,8 @@
       lang="vi">
 <head>
     <title>Xóa hồ sơ bệnh án</title>
+    <!-- CSS riêng của module bác sĩ -->
+    <link rel="stylesheet" th:href="@{/css/doctor.css}">
 </head>
 <body>
 
@@ -36,7 +38,7 @@
     <div class="mt-4">
         <!-- This POST actually deletes the record on the server -->
         <form method="post" th:action="@{/doctor/diagnosis/{id}/delete(id=${appointment.id})}"
-              style="display: inline;">
+              class="inline-form">
             <button type="submit" class="btn btn-danger">Đồng ý xóa</button>
         </form>
 
