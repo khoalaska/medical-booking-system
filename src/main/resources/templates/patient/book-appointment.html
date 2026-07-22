@@ -18,6 +18,9 @@
             </div>
         </div>
 
+        <div class="booking-message success" th:if="${successMessage}" th:text="${successMessage}"></div>
+        <div class="booking-message error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
         <div class="booking-steps">
             <div class="booking-step" th:classappend="${selectedDepartment == null} ? 'active' : 'done'">
                 <span>1</span>
@@ -128,8 +131,13 @@
                     </div>
                 </div>
 
-                <form class="booking-panel confirm-form" th:if="${selectedTimeSlot != null}" method="post" action="#">
+                <form class="booking-panel confirm-form"
+                      th:if="${selectedTimeSlot != null}"
+                      th:action="@{/patients/book-appointment}"
+                      method="post">
                     <h3>Xác nhận đặt lịch</h3>
+
+                    <input type="hidden" name="timeSlotId" th:value="${selectedTimeSlot.id}">
 
                     <div class="booking-summary">
                         <p><strong>Bác sĩ:</strong> <span th:text="${selectedDoctor.user.fullName}">BS. Nguyễn Văn A</span></p>

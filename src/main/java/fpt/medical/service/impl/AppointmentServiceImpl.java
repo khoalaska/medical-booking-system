@@ -1,8 +1,12 @@
 package fpt.medical.service.impl;
 import fpt.medical.entity.Appointment;
+import fpt.medical.entity.Patient;
+import fpt.medical.entity.TimeSlot;
 import fpt.medical.enums.AppointmentStatus;
 import fpt.medical.exception.ResourceNotFoundException;
 import fpt.medical.repository.AppointmentRepository;
+import fpt.medical.repository.PatientRepository;
+import fpt.medical.repository.TimeSlotRepository;
 import fpt.medical.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,61 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 
     private final AppointmentRepository appointmentRepository;
+    private final PatientRepository patientRepository;
+    private final TimeSlotRepository timeSlotRepository;
+
+    @Override
+    public Appointment bookAppointment(Long userId, Long timeSlotId, String notes) {
+        Patient patient = patientRepository.findByUserId(userId);
+        if (patient == null) {
+            throw new IllegalArgumentException("Không tìm thấy hồ sơ bệnh nhân.");
+        }
+
+        TimeSlot timeSlot = timeSlotRepository.findByIdForBooking(timeSlotId);
+        if (timeSlot == null) {
+            throw new ResourceNotFoundException("TimeSlot", "id", timeSlotId);
+        }
+
+        if (!timeSlot.getWorkSchedule().isAvailable()
+                || timeSlot.getWorkSchedule().getWorkDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Lịch khám này không còn khả dụng.");
+        }
+
+        if (!timeSlot.isBookable()) {
+            throw new IllegalArgumentException("Khung giờ này đã hết chỗ.");
+        }
+
+        boolean alreadyBooked = appointmentRepository
+                .existsByPatientIdAndTimeSlotIdAndStatusNot(
+                        patient.getId(), timeSlotId, AppointmentStatus.CANCELLED);
+        if (alreadyBooked) {
+            throw new IllegalArgumentException("Bạn đã đặt khung giờ này rồi.");
+        }
+
+        Appointment appointment = Appointment.builder()
+                .patient(patient)
+                .doctor(timeSlot.getWorkSchedule().getDoctor())
+                .timeSlot(timeSlot)
+                .notes(cleanNotes(notes))
+                .status(AppointmentStatus.PENDING)
+                .build();
+
+        timeSlot.setBookedCapacity(timeSlot.getBookedCapacity() + 1);
+        if (timeSlot.getBookedCapacity() >= timeSlot.getMaxCapacity()) {
+            timeSlot.setStatus("FULL");
+        }
+
+        timeSlotRepository.save(timeSlot);
+        return appointmentRepository.save(appointment);
+    }
+
+    private String cleanNotes(String notes) {
+        if (notes == null || notes.isBlank()) {
+            return null;
+        }
+        return notes.trim();
+    }
+
     // Return today's upcoming (not yet examined) appointments: status PENDING or CONFIRMED
     @Override
     @Transactional(readOnly = true)

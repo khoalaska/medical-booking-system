@@ -1,29 +1,30 @@
 package fpt.medical.controller;
 
+import fpt.medical.dto.UserProfileDTO;
 import fpt.medical.entity.Department;
 import fpt.medical.entity.Doctor;
 import fpt.medical.entity.TimeSlot;
 import fpt.medical.enums.ShiftType;
+import fpt.medical.exception.ResourceNotFoundException;
+import fpt.medical.security.CustomUserDetails;
+import fpt.medical.service.AppointmentService;
 import fpt.medical.service.DepartmentService;
 import fpt.medical.service.DoctorService;
 import fpt.medical.service.UserService;
 import fpt.medical.service.WorkScheduleService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import fpt.medical.dto.UserProfileDTO;
-import fpt.medical.security.CustomUserDetails;
-import fpt.medical.service.UserService;
-import jakarta.validation.Valid;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class PatientController {
     private final DoctorService doctorService;
     private final WorkScheduleService workScheduleService;
     private final UserService userService;
+    private final AppointmentService appointmentService;
 
     @GetMapping("/book-appointment")
     public String bookAppointment(
@@ -83,6 +85,25 @@ public class PatientController {
         }
 
         return "patient/book-appointment";
+    }
+
+    @PostMapping("/book-appointment")
+    public String confirmBooking(
+            @RequestParam Long timeSlotId,
+            @RequestParam(required = false) String notes,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            appointmentService.bookAppointment(
+                    currentUser.getUser().getId(), timeSlotId, notes);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage", "Đặt lịch khám thành công.");
+        } catch (IllegalArgumentException | ResourceNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        return "redirect:/patients/book-appointment";
     }
 
     @GetMapping("/doctors")

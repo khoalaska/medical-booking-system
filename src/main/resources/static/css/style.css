@@ -230,6 +230,23 @@ p {
     margin: 0 auto;
 }
 
+.booking-message {
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.booking-message.success {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.booking-message.error {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
 .booking-title-row {
     display: flex;
     align-items: flex-start;

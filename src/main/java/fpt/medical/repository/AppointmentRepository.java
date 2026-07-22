@@ -12,6 +12,9 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
+    boolean existsByPatientIdAndTimeSlotIdAndStatusNot(
+            Long patientId, Long timeSlotId, AppointmentStatus status);
+
     //Khoa
     @Query("SELECT a FROM Appointment a " +
             "JOIN FETCH a.patient p " +

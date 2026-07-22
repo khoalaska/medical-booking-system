@@ -114,7 +114,6 @@ public class UserServiceImpl implements UserService {
                 passwordEncoder.encode(registerDTO.getPassword())
         );
         user.setEnabled(true);
-
         user.getRoles().add(patientRole);
 
         User savedUser = userRepository.save(user);
@@ -157,7 +156,6 @@ public class UserServiceImpl implements UserService {
 
         return cleanPhone;
     }
-
     @Override
     @Transactional(readOnly = true)
     public UserProfileDTO getProfile(Long userId) {

@@ -7,7 +7,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface AppointmentService {
-    //khoa
+
+    Appointment bookAppointment(Long userId, Long timeSlotId, String notes);
 
     // Get today's upcoming (not yet examined) appointments for the dashboard preview
     List<Appointment> getUpcomingTodayAppointments(Long doctorId);
