@@ -37,6 +37,9 @@ public class DoctorFormDTO {
 
     private String bio;
 
+    @Size(max = 500, message = "URL ảnh đại diện tối đa 500 ký tự")
+    private String avatarUrl;
+
     @Min(value = 0, message = "Số năm kinh nghiệm không được âm")
     private Integer experienceYears;
 

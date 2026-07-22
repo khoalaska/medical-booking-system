@@ -53,4 +53,21 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     public List<Department> getDepartmentsWithoutDoctors() {
         return departmentRepository.findDepartmentsWithoutDoctors();
     }
+
+    @Override
+    public List<fpt.medical.dto.DoctorCountByDepartmentDTO> getDoctorCountByDepartment() {
+        return departmentRepository.countDoctorsPerDepartment();
+    }
+
+    @Override
+    public java.util.Map<String, Long> getShiftDistribution() {
+        List<WorkSchedule> allSchedules = workScheduleRepository.findAll();
+        long morningCount = allSchedules.stream().filter(s -> s.getShift() == fpt.medical.enums.ShiftType.MORNING).count();
+        long afternoonCount = allSchedules.stream().filter(s -> s.getShift() == fpt.medical.enums.ShiftType.AFTERNOON).count();
+
+        java.util.Map<String, Long> distribution = new java.util.LinkedHashMap<>();
+        distribution.put("Ca sáng", morningCount);
+        distribution.put("Ca chiều", afternoonCount);
+        return distribution;
+    }
 }

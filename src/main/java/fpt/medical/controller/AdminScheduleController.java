@@ -15,6 +15,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import fpt.medical.service.DepartmentService;
+
 import java.util.List;
 
 @Controller
@@ -24,31 +26,30 @@ public class AdminScheduleController {
 
     private final WorkScheduleService workScheduleService;
     private final DoctorService doctorService;
+    private final DepartmentService departmentService;
 
     @GetMapping
     public String listSchedules(
-            @RequestParam(value = "doctorId", required = false) String doctorIdParam,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "15") int size,
-            @RequestParam(value = "sortBy", defaultValue = "workDate") String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "departmentId", required = false) String departmentIdParam,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "weekStart", required = false)
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+            java.time.LocalDate weekStart,
             Model model) {
 
-        Long doctorId = (doctorIdParam != null && !doctorIdParam.isBlank())
-                ? Long.valueOf(doctorIdParam) : null;
+        Long departmentId = (departmentIdParam != null && !departmentIdParam.isBlank())
+                ? Long.valueOf(departmentIdParam) : null;
 
-        Page<WorkSchedule> schedulePage = workScheduleService.getSchedules(doctorId, page, size, sortBy, sortDir);
+        fpt.medical.dto.WeeklyScheduleGridDTO grid =
+                workScheduleService.getWeeklyGrid(departmentId, keyword, weekStart);
 
-        model.addAttribute("schedules", schedulePage.getContent());
-        model.addAttribute("schedulePage", schedulePage);
-        model.addAttribute("doctorId", doctorId);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", schedulePage.getTotalPages());
-        model.addAttribute("totalItems", schedulePage.getTotalElements());
-        model.addAttribute("sortBy", sortBy);
-        model.addAttribute("sortDir", sortDir);
-        model.addAttribute("reverseSortDir", sortDir.equalsIgnoreCase("asc") ? "desc" : "asc");
+        model.addAttribute("grid", grid);
+        model.addAttribute("departmentId", departmentId);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("prevWeekStart", grid.getWeekStart().minusWeeks(1));
+        model.addAttribute("nextWeekStart", grid.getWeekStart().plusWeeks(1));
         model.addAttribute("doctors", doctorService.getAllForDropdown());
+        model.addAttribute("departments", departmentService.getAllForDropdown());
 
         return "admin/schedule-list";
     }
@@ -77,10 +78,9 @@ public class AdminScheduleController {
             @ModelAttribute WorkSchedule workSchedule,
             BindingResult result,
             @RequestParam(value = "doctorId", required = false) String doctorIdParam,
+            @RequestParam(value = "shiftOption", required = false) String shiftOption,
             Model model,
             RedirectAttributes redirectAttributes) {
-
-        // TODO: cân nhắc tạo DTO riêng nếu cần validate chi tiết hơn
         if (result.hasErrors()) {
             model.addAttribute("errorMessage", "Dữ liệu nhập không hợp lệ, vui lòng kiểm tra lại.");
             model.addAttribute("doctors", doctorService.getAllForDropdown());
@@ -96,11 +96,30 @@ public class AdminScheduleController {
             Doctor doctor = doctorService.getByIdWithUser(doctorId);
             workSchedule.setDoctor(doctor);
 
+            boolean isFullDay = "FULL".equals(shiftOption);
+
             if (workSchedule.getId() == null) {
-                workScheduleService.createSchedule(workSchedule);
+                if (isFullDay) {
+                    workScheduleService.createFullDaySchedule(workSchedule);
+                } else {
+                    if (shiftOption == null || shiftOption.isBlank()) {
+                        throw new IllegalArgumentException("Vui lòng chọn ca làm việc");
+                    }
+                    workSchedule.setShift(ShiftType.valueOf(shiftOption));
+                    workScheduleService.createSchedule(workSchedule);
+                }
             } else {
+                if (isFullDay) {
+                    throw new IllegalArgumentException(
+                            "Không thể đổi lịch đang chỉnh sửa thành Cả ngày. Vui lòng tạo lịch cả ngày mới hoặc sửa từng ca riêng.");
+                }
+                if (shiftOption == null || shiftOption.isBlank()) {
+                    throw new IllegalArgumentException("Vui lòng chọn ca làm việc");
+                }
+                workSchedule.setShift(ShiftType.valueOf(shiftOption));
                 workScheduleService.updateSchedule(workSchedule.getId(), workSchedule);
             }
+
             redirectAttributes.addFlashAttribute("successMessage", "Lưu lịch làm việc thành công!");
             return "redirect:/admin/schedules";
         } catch (DuplicateRecordException | IllegalArgumentException e) {
@@ -123,5 +142,54 @@ public class AdminScheduleController {
             redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi khi xóa lịch làm việc.");
         }
         return "redirect:/admin/schedules";
+    }
+
+    @PostMapping("/publish")
+    public String publishSchedules(
+            @RequestParam(value = "doctorId", required = false) String doctorIdParam,
+            @RequestParam("fromDate") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fromDate,
+            @RequestParam("toDate") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate toDate,
+            RedirectAttributes redirectAttributes) {
+        try {
+            Long doctorId = (doctorIdParam != null && !doctorIdParam.isBlank()) ? Long.valueOf(doctorIdParam) : null;
+            fpt.medical.dto.PublishScheduleResultDTO result = workScheduleService.publishSchedules(doctorId, fromDate, toDate);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã công bố " + result.getPublishedCount() + " lịch làm việc.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/schedules";
+    }
+
+    @GetMapping("/auto-assign")
+    public String showAutoAssignForm(Model model) {
+        model.addAttribute("departments", departmentService.getAllForDropdown());
+        return "admin/schedule-auto-assign";
+    }
+
+    @PostMapping("/auto-assign")
+    public String autoAssign(
+            @RequestParam("departmentId") Long departmentId,
+            @RequestParam("fromDate") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fromDate,
+            @RequestParam("toDate") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate toDate,
+            RedirectAttributes redirectAttributes) {
+        try {
+            fpt.medical.dto.AutoAssignResultDTO result = workScheduleService.autoAssignSchedules(departmentId, fromDate, toDate);
+            String msg = "Đã tạo " + result.getCreatedCount() + " lịch làm việc (bản nháp).";
+            if (!result.getUnfilledWarnings().isEmpty()) {
+                msg += " Cảnh báo: " + String.join("; ", result.getUnfilledWarnings());
+            }
+            redirectAttributes.addFlashAttribute("successMessage", msg);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/schedules";
+    }
+
+    @PostMapping(value = "/move", consumes = "application/json", produces = "application/json")
+    @ResponseBody
+    public fpt.medical.dto.MoveScheduleResultDTO moveSchedule(
+            @RequestBody fpt.medical.dto.MoveScheduleRequestDTO request) {
+        return workScheduleService.moveOrSwapSchedules(request);
     }
 }

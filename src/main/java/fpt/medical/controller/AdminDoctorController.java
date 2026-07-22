@@ -132,6 +132,7 @@ public class AdminDoctorController {
                 .fullName(doctor.getUser().getFullName())
                 .email(doctor.getUser().getEmail())
                 .phone(doctor.getUser().getPhone())
+                .avatarUrl(doctor.getUser().getAvatarUrl())
                 .departmentId(doctor.getDepartment() != null ? doctor.getDepartment().getId() : null)
                 .specialization(doctor.getSpecialization())
                 .bio(doctor.getBio())

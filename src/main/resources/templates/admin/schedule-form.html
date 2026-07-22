@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/admin-layout}"
+      layout:decorate="~{layouts/main-layout}"
       th:with="activeMenu='schedules'">
 <head>
     <title th:text="${pageTitle}">Thêm/Sửa Lịch làm việc</title>
@@ -41,12 +41,15 @@
 
             <!-- Shift Selection -->
             <div class="form-group" style="margin-bottom: 15px;">
-                <label for="shift" style="display: block; font-weight: bold; margin-bottom: 5px;">Ca làm việc *</label>
-                <select id="shift" th:field="*{shift}" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required>
-                    <option th:each="s : ${shiftTypes}" 
-                            th:value="${s}" 
-                            th:text="${s.name() == 'MORNING' ? 'Ca sáng' : (s.name() == 'AFTERNOON' ? 'Ca chiều' : 'Ca tối')}"></option>
+                <label for="shiftOption" style="display: block; font-weight: bold; margin-bottom: 5px;">Ca làm việc *</label>
+                <select id="shiftOption" name="shiftOption" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required>
+                    <option value="MORNING" th:selected="${workSchedule.shift != null && workSchedule.shift.name() == 'MORNING'}">Ca sáng</option>
+                    <option value="AFTERNOON" th:selected="${workSchedule.shift != null && workSchedule.shift.name() == 'AFTERNOON'}">Ca chiều</option>
+                    <option th:if="${workSchedule.id == null}" value="FULL">Cả ngày (sáng + chiều)</option>
                 </select>
+                <small th:if="${workSchedule.id == null}" style="display: block; margin-top: 4px; color: #777; font-size: 12px;">
+                    Chọn "Cả ngày" sẽ tạo đồng thời lịch ca sáng và ca chiều cho ngày này.
+                </small>
             </div>
 
             <!-- Available Status -->

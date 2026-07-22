@@ -18,4 +18,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     @Query("select d from Department d where d.doctors is empty")
     List<Department> findDepartmentsWithoutDoctors();
+
+    @Query("select new fpt.medical.dto.DoctorCountByDepartmentDTO(d.name, count(doc)) from Department d left join d.doctors doc group by d.id, d.name order by d.name asc")
+    List<fpt.medical.dto.DoctorCountByDepartmentDTO> countDoctorsPerDepartment();
 }

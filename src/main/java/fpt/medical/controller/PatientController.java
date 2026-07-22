@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Controller
 @RequestMapping("/patients")
@@ -85,7 +86,19 @@ public class PatientController {
     }
 
     @GetMapping("/doctors")
-    public String doctorList() {
+    public String doctorList(
+            @RequestParam(value = "departmentId", required = false) Long departmentId,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            Model model) {
+
+        List<Department> departments = departmentService.getAllForDropdown();
+        Page<Doctor> doctorPage = doctorService.getDoctors(keyword, departmentId, 0, 50, "id", "asc");
+
+        model.addAttribute("departments", departments);
+        model.addAttribute("doctors", doctorPage.getContent());
+        model.addAttribute("selectedDepartmentId", departmentId);
+        model.addAttribute("keyword", keyword);
+
         return "patient/doctor-list";
     }
 

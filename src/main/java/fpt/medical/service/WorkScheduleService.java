@@ -25,4 +25,10 @@ public interface WorkScheduleService {
     WorkSchedule createSchedule(WorkSchedule schedule);
     WorkSchedule updateSchedule(Long id, WorkSchedule updated);
     void deleteSchedule(Long id);
+
+    fpt.medical.dto.PublishScheduleResultDTO publishSchedules(Long doctorId, java.time.LocalDate fromDate, java.time.LocalDate toDate);
+    fpt.medical.dto.AutoAssignResultDTO autoAssignSchedules(Long departmentId, java.time.LocalDate fromDate, java.time.LocalDate toDate);
+    fpt.medical.dto.WeeklyScheduleGridDTO getWeeklyGrid(Long departmentId, String keyword, java.time.LocalDate weekStart);
+    fpt.medical.dto.MoveScheduleResultDTO moveOrSwapSchedules(fpt.medical.dto.MoveScheduleRequestDTO request);
+    List<WorkSchedule> createFullDaySchedule(WorkSchedule template);
 }

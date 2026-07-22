@@ -125,18 +125,19 @@ public class DoctorServiceImpl implements DoctorService {
             throw new DuplicateRecordException("User", "email", dto.getEmail());
         }
 
+        Role doctorRole = roleRepository.findByName("ROLE_DOCTOR")
+                .orElseThrow(() -> new IllegalStateException("Role ROLE_DOCTOR chưa được khởi tạo trong hệ thống"));
+
         User user = User.builder()
                 .fullName(dto.getFullName())
                 .email(dto.getEmail())
                 .phone(dto.getPhone())
+                .avatarUrl(dto.getAvatarUrl())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .enabled(true)
+                .roles(Set.of(doctorRole))
                 .build();
 
-        Role doctorRole = roleRepository.findByName("ROLE_DOCTOR")
-                .orElseThrow(() -> new IllegalStateException("Role ROLE_DOCTOR chưa được khởi tạo trong hệ thống"));
-
-        user.setRoles(Set.of(doctorRole));
         User savedUser = userRepository.save(user);
 
         Department department = dto.getDepartmentId() != null
@@ -174,6 +175,7 @@ public class DoctorServiceImpl implements DoctorService {
         user.setFullName(dto.getFullName());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
+        user.setAvatarUrl(dto.getAvatarUrl());
 
         if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));

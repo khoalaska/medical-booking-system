@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
 
-    List<TimeSlot> findByWorkScheduleDoctorIdAndWorkScheduleWorkDateAndWorkScheduleShiftOrderByStartTimeAsc(
+    List<TimeSlot> findByWorkScheduleDoctorIdAndWorkScheduleWorkDateAndWorkScheduleShiftAndWorkSchedulePublishedTrueOrderByStartTimeAsc(
             Long doctorId, LocalDate workDate, ShiftType shift);
 
     List<TimeSlot> findByWorkScheduleIdOrderByStartTimeAsc(Long workScheduleId);

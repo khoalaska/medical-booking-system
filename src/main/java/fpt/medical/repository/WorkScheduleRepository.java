@@ -14,13 +14,13 @@ import java.util.List;
 public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Long> {
 
     //Yen
-    List<WorkSchedule> findByDoctorIdAndAvailableTrueAndWorkDateGreaterThanEqualOrderByWorkDateAsc(
+    List<WorkSchedule> findByDoctorIdAndAvailableTrueAndPublishedTrueAndWorkDateGreaterThanEqualOrderByWorkDateAsc(
             Long doctorId, LocalDate today);
 
-    List<WorkSchedule> findByDoctorIdAndWorkDateAndAvailableTrueOrderByShiftAsc(
+    List<WorkSchedule> findByDoctorIdAndWorkDateAndAvailableTrueAndPublishedTrueOrderByShiftAsc(
             Long doctorId, LocalDate workDate);
 
-    List<WorkSchedule> findByDoctorIdAndWorkDateAndShiftAndAvailableTrue(
+    List<WorkSchedule> findByDoctorIdAndWorkDateAndShiftAndAvailableTrueAndPublishedTrue(
             Long doctorId, LocalDate workDate, ShiftType shift);
 
     Page<WorkSchedule> findByDoctorId(Long doctorId, Pageable pageable);
@@ -30,4 +30,9 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Long
     long countByWorkDate(LocalDate workDate);
     Page<WorkSchedule> findByWorkDateGreaterThanEqualOrderByWorkDateAsc(
         LocalDate fromDate, Pageable pageable);
+
+    List<WorkSchedule> findByWorkDateBetween(LocalDate fromDate, LocalDate toDate);
+    List<WorkSchedule> findByDoctorIdAndWorkDateBetween(Long doctorId, LocalDate fromDate, LocalDate toDate);
+    List<WorkSchedule> findByDoctorIdInAndWorkDateBetween(List<Long> doctorIds, LocalDate fromDate, LocalDate toDate);
+    List<WorkSchedule> findByDoctorIdAndWorkDate(Long doctorId, LocalDate workDate);
 }

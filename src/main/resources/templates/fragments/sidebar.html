@@ -1,22 +1,48 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
 <aside class="sidebar" th:fragment="sidebar">
 
     <div class="sidebar-logo">
-        <span>Medical Booking</span>
+        <span sec:authorize="hasRole('ROLE_ADMIN')">Medical Booking - Admin</span>
+        <span sec:authorize="hasRole('ROLE_DOCTOR')">Medical Booking - Doctor</span>
+        <span sec:authorize="!hasAnyRole('ROLE_ADMIN', 'ROLE_DOCTOR')">Medical Booking</span>
     </div>
 
-    <!-- Menu: thêm sec:authorize khi có Security -->
     <nav class="sidebar-nav">
-        <a th:href="@{/doctor/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? 'active'">Dashboard</a>
-        <a th:href="@{/doctor/schedule}" th:classappend="${activeMenu == 'schedule'} ? 'active'">Lịch khám</a>
-        <a th:href="@{/doctor/patient-history}" th:classappend="${activeMenu == 'patient-history'} ? 'active'">Hồ sơ Bệnh nhân</a>
+        <!-- Admin Navigation -->
+        <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+            <a th:href="@{/admin/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? 'active'">Dashboard</a>
+            <a th:href="@{/admin/doctors}" th:classappend="${activeMenu == 'doctors'} ? 'active'">Quản lý Bác sĩ</a>
+            <a th:href="@{/admin/departments}" th:classappend="${activeMenu == 'departments'} ? 'active'">Quản lý Phòng ban</a>
+            <a th:href="@{/admin/schedules}" th:classappend="${activeMenu == 'schedules'} ? 'active'">Lịch làm việc</a>
+        </th:block>
+
+        <!-- Doctor Navigation -->
+        <th:block sec:authorize="hasRole('ROLE_DOCTOR')">
+            <a th:href="@{/doctor/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? 'active'">Dashboard</a>
+            <a th:href="@{/doctor/schedule}" th:classappend="${activeMenu == 'schedule'} ? 'active'">Lịch khám</a>
+            <a th:href="@{/doctor/patient-history}" th:classappend="${activeMenu == 'patient-history'} ? 'active'">Hồ sơ Bệnh nhân</a>
+        </th:block>
     </nav>
 
     <div class="sidebar-footer">
-        <a th:href="@{/logout}">Đăng xuất</a>
+        <form th:action="@{/logout}"
+              method="post"
+              style="margin: 0;">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <button type="submit"
+                    class="sidebar-logout-button">
+                Đăng xuất
+            </button>
+
+        </form>
     </div>
 
 </aside>

@@ -1,49 +1,233 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/public-layout}"
+      lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách bác sĩ</title>
-    <link rel="stylesheet" th:href="@{/css/patient.css}" href="/css/patient.css">
+    <title>Đội ngũ Bác sĩ - Medical Booking</title>
 </head>
 <body>
-<h2>Danh sách bác sĩ</h2>
 
-<table>
-    <thead>
-    <tr>
-        <th>Tên bác sĩ</th>
-        <th>Chuyên khoa</th>
-        <th>Kinh nghiệm</th>
-        <th>Thao tác</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="doctor : ${doctors}">
-        <td th:text="${doctor.fullName}">BS. Nguyễn Văn An</td>
-        <td th:text="${doctor.departmentName}">Nội tổng quát</td>
-        <td th:text="${doctor.experience}">8 năm</td>
-        <td><a th:href="@{/patients/book-appointment(doctorId=${doctor.id})}" href="#">Đặt lịch</a></td>
-    </tr>
+<main layout:fragment="content" class="booking-page" style="background-color: #f8fafc; padding: 30px 20px; min-height: 80vh;">
+    <div class="booking-container" style="max-width: 1200px; margin: 0 auto;">
 
-    <tr th:if="${doctors == null}">
-        <td>BS. Nguyễn Văn An</td>
-        <td>Nội tổng quát</td>
-        <td>8 năm</td>
-        <td><a href="#">Đặt lịch</a></td>
-    </tr>
-    <tr th:if="${doctors == null}">
-        <td>BS. Trần Thị Bình</td>
-        <td>Nhi khoa</td>
-        <td>6 năm</td>
-        <td><a href="#">Đặt lịch</a></td>
-    </tr>
-    <tr th:if="${doctors == null}">
-        <td>BS. Lê Minh Quân</td>
-        <td>Tim mạch</td>
-        <td>10 năm</td>
-        <td><a href="#">Đặt lịch</a></td>
-    </tr>
-    </tbody>
-</table>
+        <!-- Hero Header -->
+        <div style="text-align: center; margin-bottom: 35px; padding: 20px 10px;">
+            <h1 style="font-size: 30px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">
+                Đội Ngũ Bác Sĩ Chuyên Gia
+            </h1>
+            <p style="font-size: 15px; color: #64748b; max-width: 600px; margin: 0 auto; line-height: 1.5;">
+                Đội ngũ y bác sĩ đầu ngành, giàu kinh nghiệm và tận tâm, sẵn sàng chăm sóc sức khỏe toàn diện cho bạn và gia đình.
+            </p>
+        </div>
+
+        <!-- Main Layout: 2 Columns (Sidebar 260px | Doctor Grid 1fr) -->
+        <div style="display: grid; grid-template-columns: 260px 1fr; gap: 25px; align-items: start;">
+
+            <!-- Left Column: Filter Sidebar -->
+            <div class="card" style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                
+                <!-- Search Input -->
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                        🔍 Tìm kiếm bác sĩ
+                    </h3>
+                    <form th:action="@{/patients/doctors}" method="get">
+                        <input type="hidden" name="departmentId" th:value="${selectedDepartmentId}" />
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" name="keyword" th:value="${keyword}" placeholder="Tên bác sĩ..."
+                                   style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; box-sizing: border-border-box;" />
+                            <button type="submit" class="btn btn-primary" style="padding: 0 14px; white-space: nowrap; height: 38px;">Lọc</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Department Navigation -->
+                <div>
+                    <h3 style="font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">
+                        📂 Chuyên khoa
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <!-- All Departments Option -->
+                        <a th:href="@{/patients/doctors(keyword=${keyword})}"
+                           style="padding: 10px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; display: block;"
+                           th:styleappend="${selectedDepartmentId == null} ? 'background-color: #0284c7; color: #ffffff; font-weight: 600;' : 'color: #475569; background-color: transparent;'">
+                            Tất cả chuyên khoa
+                        </a>
+
+                        <!-- Department Items Loop -->
+                        <a th:each="dept : ${departments}"
+                           th:href="@{/patients/doctors(departmentId=${dept.id}, keyword=${keyword})}"
+                           th:text="${dept.name}"
+                           style="padding: 10px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; display: block;"
+                           th:styleappend="${selectedDepartmentId != null && selectedDepartmentId == dept.id} ? 'background-color: #0284c7; color: #ffffff; font-weight: 600;' : 'color: #475569; background-color: transparent;'">
+                            Khoa Nội
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Doctor Cards Grid -->
+            <div>
+                <!-- Result Count Banner -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 0 4px;">
+                    <span style="font-size: 14px; color: #64748b;" th:text="'Hiển thị ' + ${#lists.size(doctors)} + ' bác sĩ'">
+                        Hiển thị 0 bác sĩ
+                    </span>
+                    <a th:if="${selectedDepartmentId != null || (keyword != null && !keyword.isBlank())}"
+                       th:href="@{/patients/doctors}"
+                       style="font-size: 13px; color: #0284c7; text-decoration: none; font-weight: 600;">
+                        ✖ Xóa bộ lọc
+                    </a>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(doctors)}"
+                     style="background: #ffffff; border-radius: 12px; padding: 40px 20px; text-align: center; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 42px; margin-bottom: 10px;">👨‍⚕️</div>
+                    <h3 style="font-size: 18px; color: #334155; margin-bottom: 6px;">Không tìm thấy bác sĩ phù hợp</h3>
+                    <p style="font-size: 14px; color: #64748b; margin-bottom: 20px;">Vui lòng thử chọn chuyên khoa khác hoặc xóa từ khóa tìm kiếm.</p>
+                    <a th:href="@{/patients/doctors}" class="btn btn-secondary" style="padding: 8px 16px; text-decoration: none;">Xem tất cả bác sĩ</a>
+                </div>
+
+                <!-- Doctors Cards List -->
+                <div th:unless="${#lists.isEmpty(doctors)}"
+                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+
+                    <!-- Doctor Card Component -->
+                    <div th:each="doc : ${doctors}"
+                         class="doctor-card-item"
+                         style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        
+                        <div>
+                            <!-- Header Info: Avatar + Details -->
+                            <div style="display: flex; gap: 16px; margin-bottom: 14px;">
+                                <!-- Doctor Avatar / Image -->
+                                <div style="width: 100px; height: 120px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;">
+                                    <img th:if="${doc.user.avatarUrl != null && !#strings.isEmpty(doc.user.avatarUrl)}"
+                                         th:src="${doc.user.avatarUrl}" th:alt="${doc.user.fullName}"
+                                         style="width: 100%; height: 100%; object-fit: cover;" />
+                                    <div th:unless="${doc.user.avatarUrl != null && !#strings.isEmpty(doc.user.avatarUrl)}"
+                                         style="font-size: 38px; color: #94a3b8;">
+                                        👨‍⚕️
+                                    </div>
+                                </div>
+
+                                <!-- Doctor Information -->
+                                <div style="display: flex; flex-direction: column; justify-content: center; flex: 1;">
+                                    <!-- Title & Full Name -->
+                                    <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 2px 0; line-height: 1.3;"
+                                        th:text="${doc.user.fullName}">
+                                        BS. Nguyễn Văn An
+                                    </h2>
+
+                                    <!-- Xem chi tiết Link -->
+                                    <div style="margin-bottom: 6px;">
+                                        <a href="javascript:void(0)"
+                                           th:attr="data-name=${doc.user.fullName},
+                                                    data-dept=${doc.department != null ? doc.department.name : 'Chưa phân khoa'},
+                                                    data-spec=${doc.specialization != null ? doc.specialization : 'N/A'},
+                                                    data-exp=${doc.experienceYears != null ? doc.experienceYears : '0'},
+                                                    data-rating=${doc.rating != null ? doc.rating : '5.0'},
+                                                    data-bio=${doc.bio != null ? doc.bio : 'Chưa có thông tin tiểu sử.'}"
+                                           onclick="showDoctorModal(this)"
+                                           style="font-size: 12px; color: #0284c7; font-weight: 600; text-decoration: none;">
+                                            Xem chi tiết &rarr;
+                                        </a>
+                                    </div>
+
+                                    <!-- Department Badge -->
+                                    <div style="margin-bottom: 6px;">
+                                        <span th:if="${doc.department != null}"
+                                              style="background-color: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 11px; padding: 3px 8px; border-radius: 4px; display: inline-block;"
+                                              th:text="${doc.department.name}">
+                                            Khoa Nội
+                                        </span>
+                                        <span th:unless="${doc.department != null}"
+                                              style="background-color: #f1f5f9; color: #64748b; font-size: 11px; padding: 3px 8px; border-radius: 4px; display: inline-block;">
+                                            Chưa phân khoa
+                                        </span>
+                                    </div>
+
+                                    <!-- Specialization -->
+                                    <div style="font-size: 13px; color: #475569; margin-bottom: 4px;" th:if="${doc.specialization != null}">
+                                        <strong style="color: #334155;">Chuyên khoa:</strong> <span th:text="${doc.specialization}">Nội tổng quát</span>
+                                    </div>
+
+                                    <!-- Experience -->
+                                    <div style="font-size: 12px; color: #64748b;" th:if="${doc.experienceYears != null}">
+                                        ⏱️ <span th:text="${doc.experienceYears} + ' năm kinh nghiệm'">10 năm kinh nghiệm</span>
+                                    </div>
+
+                                    <!-- Rating -->
+                                    <div style="font-size: 12px; color: #d97706; margin-top: 4px; font-weight: 600;" th:if="${doc.rating != null}">
+                                        ⭐ <span th:text="${doc.rating} + ' / 5.0'">4.8 / 5.0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Action Button -->
+                        <div style="margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+                            <a th:href="@{/patients/book-appointment(doctorId=${doc.id}, departmentId=${doc.department != null ? doc.department.id : ''})}"
+                               class="btn btn-primary"
+                               style="display: block; width: 100%; text-align: center; padding: 9px 0; background-color: #0284c7; color: #ffffff; font-weight: 600; font-size: 14px; border-radius: 6px; text-decoration: none; box-sizing: border-box; transition: background-color 0.2s;">
+                                Đặt lịch khám &rarr;
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Modal Chi Tiết Bác Sĩ -->
+    <div id="doctorDetailModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: #fff; width: 90%; max-width: 520px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative;">
+            <button onclick="closeDoctorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">✕</button>
+            <h3 id="modalDocName" style="font-size: 20px; color: #0f172a; margin-top: 0; margin-bottom: 8px;">Tên Bác sĩ</h3>
+            <div style="margin-bottom: 12px;">
+                <span id="modalDocDept" style="background-color: #e0f2fe; color: #0369a1; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 4px;">Khoa</span>
+                <span id="modalDocSpec" style="background-color: #f1f5f9; color: #475569; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 4px; margin-left: 6px;">Chuyên khoa</span>
+            </div>
+            <div style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
+                <span id="modalDocExp">0 năm kinh nghiệm</span> | ⭐ <span id="modalDocRating">5.0</span>
+            </div>
+            <div style="border-top: 1px solid #eee; padding-top: 12px; margin-bottom: 20px;">
+                <strong style="font-size: 14px; color: #334155; display: block; margin-bottom: 6px;">Tiểu sử & Giới thiệu:</strong>
+                <p id="modalDocBio" style="font-size: 14px; color: #475569; line-height: 1.6; margin: 0; white-space: pre-line;">Mô tả...</p>
+            </div>
+            <div style="text-align: right;">
+                <button onclick="closeDoctorModal()" class="btn btn-secondary" style="padding: 8px 16px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showDoctorModal(el) {
+        document.getElementById('modalDocName').innerText = el.getAttribute('data-name');
+        document.getElementById('modalDocDept').innerText = el.getAttribute('data-dept');
+        document.getElementById('modalDocSpec').innerText = 'Chuyên khoa: ' + el.getAttribute('data-spec');
+        document.getElementById('modalDocExp').innerText = '⏱️ ' + el.getAttribute('data-exp') + ' năm kinh nghiệm';
+        document.getElementById('modalDocRating').innerText = el.getAttribute('data-rating') + ' / 5.0';
+        document.getElementById('modalDocBio').innerText = el.getAttribute('data-bio');
+
+        const modal = document.getElementById('doctorDetailModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeDoctorModal() {
+        const modal = document.getElementById('doctorDetailModal');
+        modal.style.display = 'none';
+    }
+    </script>
+</main>
+
 </body>
 </html>

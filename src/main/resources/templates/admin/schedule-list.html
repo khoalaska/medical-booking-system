@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/admin-layout}"
+      layout:decorate="~{layouts/main-layout}"
       th:with="activeMenu='schedules'">
 <head>
     <title>Quản lý Lịch làm việc</title>
@@ -10,129 +10,243 @@
 
 <main class="page-content" layout:fragment="content">
     <div class="card">
+        <!-- 1. Header -->
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2>Quản lý Lịch làm việc</h2>
-            <a th:href="@{/admin/schedules/new}" class="btn btn-primary">Thêm mới lịch làm việc</a>
+            <div>
+                <a th:href="@{/admin/schedules/new}" class="btn btn-primary">Thêm mới lịch làm việc</a>
+                <a th:href="@{/admin/schedules/auto-assign}" class="btn btn-secondary" style="margin-left: 10px;">Tự động phân lịch</a>
+            </div>
         </div>
 
-        <!-- Success Message -->
+        <!-- 2. Block Công bố lịch làm việc -->
+        <div class="card" style="margin-bottom: 20px; background-color: #f8f9fa; padding: 15px; border: 1px solid #e3e6f0; border-radius: 4px;">
+            <h3 style="margin-bottom: 10px; font-size: 16px;">Công bố lịch làm việc theo khoảng ngày</h3>
+            <form th:action="@{/admin/schedules/publish}" method="post" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                <div>
+                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Bác sĩ</label>
+                    <select name="doctorId" class="form-control" style="padding: 8px;">
+                        <option value="">-- Tất cả bác sĩ --</option>
+                        <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.user.fullName}"></option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Từ ngày *</label>
+                    <input type="date" name="fromDate" class="form-control" style="padding: 8px;" required />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Đến ngày *</label>
+                    <input type="date" name="toDate" class="form-control" style="padding: 8px;" required />
+                </div>
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận công bố toàn bộ lịch làm việc (bản nháp) trong khoảng ngày đã chọn?')">Công bố</button>
+            </form>
+        </div>
+
+        <!-- 3. Alert Success / Error Messages -->
         <div th:if="${successMessage != null}" class="alert alert-success" th:text="${successMessage}">
             Thao tác thành công.
         </div>
-
-        <!-- Error Message -->
         <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}">
             Đã xảy ra lỗi.
         </div>
 
-        <!-- Filter Box -->
-        <div class="search-box" style="margin-bottom: 20px;">
-            <form th:action="@{/admin/schedules}" method="get" style="display: flex; gap: 10px; align-items: center;">
-                <input type="hidden" name="sortBy" th:value="${sortBy}" />
-                <input type="hidden" name="sortDir" th:value="${sortDir}" />
+        <!-- 4. Filter Box mới -->
+        <div style="margin-bottom: 20px; background-color: #f8f9fa; padding: 12px 18px; border: 1px solid #e3e6f0; border-radius: 8px;">
+            <form th:action="@{/admin/schedules}" method="get" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <input type="hidden" name="weekStart" th:value="${grid.weekStart}" />
                 
-                <select name="doctorId" class="form-control" style="flex: 1; padding: 8px;">
-                    <option value="">-- Tất cả bác sĩ --</option>
-                    <option th:each="d : ${doctors}" 
-                            th:value="${d.id}" 
-                            th:text="${d.user.fullName}" 
-                            th:selected="${doctorId != null && doctorId == d.id}"></option>
+                <input type="text" name="keyword" th:value="${keyword}" class="form-control"
+                       placeholder="Tìm theo tên bác sĩ..."
+                       style="width: 240px; max-width: 100%; padding: 8px 12px; height: 38px; border-radius: 6px; box-sizing: border-box;" />
+
+                <select name="departmentId" class="form-control"
+                        style="width: 200px; max-width: 100%; padding: 8px 12px; height: 38px; border-radius: 6px; cursor: pointer; box-sizing: border-box;">
+                    <option value="">Tất cả khoa</option>
+                    <option th:each="dept : ${departments}" th:value="${dept.id}" th:text="${dept.name}"
+                            th:selected="${departmentId != null && departmentId == dept.id}"></option>
                 </select>
 
-                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-                <a th:href="@{/admin/schedules}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit;">Làm mới</a>
+                <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; font-weight: 500;">Lọc</button>
+                <a th:href="@{/admin/schedules}" class="btn btn-secondary" style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit; box-sizing: border-box;">Làm mới</a>
             </form>
         </div>
 
-        <!-- Schedule Table -->
+        <!-- 5. Thanh điều hướng tuần -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <a th:href="@{/admin/schedules(weekStart=${prevWeekStart}, departmentId=${departmentId}, keyword=${keyword})}"
+               class="btn btn-secondary" style="text-decoration: none;">&larr; Tuần trước</a>
+            <strong style="font-size: 16px;"
+                    th:text="'Tuần ' + ${#temporals.format(grid.weekStart, 'dd/MM/yyyy')} + ' - ' + ${#temporals.format(grid.weekEnd, 'dd/MM/yyyy')}">
+                Tuần
+            </strong>
+            <a th:href="@{/admin/schedules(weekStart=${nextWeekStart}, departmentId=${departmentId}, keyword=${keyword})}"
+               class="btn btn-secondary" style="text-decoration: none;">Tuần sau &rarr;</a>
+        </div>
+
+        <!-- 6. Bảng lưới chính -->
         <div class="table-responsive">
             <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <thead>
                     <tr style="border-bottom: 2px solid #ddd; text-align: left;">
-                        <th style="padding: 10px;">
-                            <a th:href="@{/admin/schedules(doctorId=${doctorId}, sortBy='id', sortDir=${reverseSortDir})}" style="text-decoration: none; color: inherit; font-weight: bold;">
-                                ID <span th:if="${sortBy == 'id'}" th:text="${sortDir == 'asc' ? '▲' : '▼'}"></span>
-                            </a>
+                        <th style="padding: 10px; min-width: 160px;">Bác sĩ</th>
+                        <th th:each="day : ${grid.days}" style="padding: 10px; text-align: center; min-width: 130px;">
+                            <div th:switch="${day.dayOfWeek.name()}">
+                                <span th:case="'MONDAY'">Thứ 2</span>
+                                <span th:case="'TUESDAY'">Thứ 3</span>
+                                <span th:case="'WEDNESDAY'">Thứ 4</span>
+                                <span th:case="'THURSDAY'">Thứ 5</span>
+                                <span th:case="'FRIDAY'">Thứ 6</span>
+                                <span th:case="'SATURDAY'">Thứ 7</span>
+                                <span th:case="'SUNDAY'">Chủ nhật</span>
+                            </div>
+                            <div style="font-weight: normal; font-size: 12px; color: #777;" th:text="${#temporals.format(day, 'dd/MM')}">01/01</div>
                         </th>
-                        <th style="padding: 10px; font-weight: bold; color: inherit;">Bác sĩ</th>
-                        <th style="padding: 10px;">
-                            <a th:href="@{/admin/schedules(doctorId=${doctorId}, sortBy='workDate', sortDir=${reverseSortDir})}" style="text-decoration: none; color: inherit; font-weight: bold;">
-                                Ngày làm việc <span th:if="${sortBy == 'workDate'}" th:text="${sortDir == 'asc' ? '▲' : '▼'}"></span>
-                            </a>
-                        </th>
-                        <th style="padding: 10px; font-weight: bold; color: inherit;">Ca làm việc</th>
-                        <th style="padding: 10px; font-weight: bold; color: inherit;">Trạng thái</th>
-                        <th style="padding: 10px; font-weight: bold; color: inherit;">Số khung giờ</th>
-                        <th style="padding: 10px; text-align: center; font-weight: bold; color: inherit;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:if="${#lists.isEmpty(schedules)}">
-                        <td colspan="7" style="text-align: center; padding: 20px; color: #777;">Không có lịch làm việc nào</td>
+                    <tr th:if="${#lists.isEmpty(grid.rows)}">
+                        <td th:attr="colspan=${grid.days.size() + 1}" style="text-align: center; padding: 20px; color: #777;">
+                            Không có bác sĩ nào khớp bộ lọc
+                        </td>
                     </tr>
-                    <tr th:each="schedule : ${schedules}" style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;" th:text="${schedule.id}">1</td>
-                        <td style="padding: 10px; font-weight: bold;" th:text="${schedule.doctor.user.fullName}">Tên bác sĩ</td>
-                        <td style="padding: 10px;" th:text="${#temporals.format(schedule.workDate, 'dd/MM/yyyy')}">20/07/2026</td>
-                        <td style="padding: 10px;">
-                            <span th:switch="${schedule.shift.name()}">
-                                <span th:case="'MORNING'">Ca sáng</span>
-                                <span th:case="'AFTERNOON'">Ca chiều</span>
-                                <span th:case="'EVENING'">Ca tối</span>
-                                <span th:case="*">Chưa rõ</span>
-                            </span>
-                        </td>
-                        <td style="padding: 10px;">
-                            <span th:if="${schedule.available}" class="badge alert-success" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block;">Hoạt động</span>
-                            <span th:unless="${schedule.available}" class="badge alert-secondary" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block; background-color: #ddd; color: #555;">Tạm ngưng</span>
-                        </td>
-                        <td style="padding: 10px;">
-                            <span th:text="${schedule.timeSlots.size()}">0</span>
-                            <a th:href="@{/admin/schedules/{id}/timeslots(id=${schedule.id})}" style="margin-left: 10px; text-decoration: none; color: #007bff; font-weight: bold;">Xem chi tiết</a>
-                        </td>
-                        <td style="padding: 10px; text-align: center; display: flex; gap: 10px; justify-content: center; align-items: center;">
-                            <a th:href="@{/admin/schedules/edit/{id}(id=${schedule.id})}" class="btn btn-secondary" style="font-size: 13px; text-decoration: none; padding: 5px 10px; border-radius: 4px;">Sửa</a>
-                            <a th:href="@{/admin/schedules/delete/{id}(id=${schedule.id})}" class="btn btn-danger" style="font-size: 13px; text-decoration: none; padding: 5px 10px; border-radius: 4px;" 
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa lịch làm việc này? Toàn bộ khung giờ bên trong cũng sẽ bị xóa.')">Xóa</a>
+                    <tr th:each="row : ${grid.rows}" style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px; font-weight: bold; vertical-align: top;" th:text="${row.doctor.user.fullName}">Tên bác sĩ</td>
+
+                        <td th:each="day : ${grid.days}" style="padding: 8px; vertical-align: top;"
+                            th:attr="data-doctor-id=${row.doctor.id}, data-date=${day}">
+                            <div th:with="daySchedules=${row.schedulesByDate.get(day)}"
+                                 class="schedule-cell"
+                                 th:attr="draggable=${daySchedules != null && !#lists.isEmpty(daySchedules)}">
+
+                                <!-- Ô trống - không có lịch -->
+                                <div th:if="${daySchedules == null || #lists.isEmpty(daySchedules)}"
+                                     style="text-align: center; color: #ccc; padding: 10px;">
+                                    <a th:href="@{/admin/schedules/new}" style="text-decoration: none; color: #ccc; font-size: 20px;">+</a>
+                                </div>
+
+                                <!-- Có đúng 2 dòng (MORNING + AFTERNOON) -> Cả ngày -->
+                                <div th:if="${daySchedules != null && daySchedules.size() == 2}"
+                                     style="background-color: #d4edda; border-radius: 4px; padding: 6px 8px; font-size: 12px;">
+                                    <div style="font-weight: bold; color: #155724;">Cả ngày</div>
+                                    <div th:each="ws : ${daySchedules}" style="margin-top: 3px;">
+                                        <a th:href="@{/admin/schedules/{id}/timeslots(id=${ws.id})}" style="text-decoration: none; color: #155724;">
+                                            <span th:text="${ws.shift.name() == 'MORNING'} ? 'Sáng' : 'Chiều'">Ca</span>
+                                            <span th:if="${ws.published}" style="margin-left: 4px;">✓</span>
+                                            <span th:unless="${ws.published}" style="margin-left: 4px; color: #856404;">(nháp)</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Chỉ có 1 dòng (1 ca) -->
+                                <div th:if="${daySchedules != null && daySchedules.size() == 1}"
+                                     th:with="ws=${daySchedules[0]}"
+                                     th:style="${ws.shift.name() == 'MORNING'}
+                                         ? 'background-color: #cce5ff; border-radius: 4px; padding: 6px 8px; font-size: 12px;'
+                                         : 'background-color: #fff3cd; border-radius: 4px; padding: 6px 8px; font-size: 12px;'">
+                                    <a th:href="@{/admin/schedules/{id}/timeslots(id=${ws.id})}"
+                                       th:style="${ws.shift.name() == 'MORNING'} ? 'text-decoration: none; color: #004085; font-weight: bold;' : 'text-decoration: none; color: #856404; font-weight: bold;'">
+                                        <span th:text="${ws.shift.name() == 'MORNING'} ? 'Ca sáng' : 'Ca chiều'">Ca</span>
+                                    </a>
+                                    <div style="margin-top: 3px;">
+                                        <span th:if="${ws.published}" style="color: #155724;">Đã công bố</span>
+                                        <span th:unless="${ws.published}" style="color: #856404;">Bản nháp</span>
+                                    </div>
+                                </div>
+
+                            </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination & Summary Info -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-            <div>
-                Tổng số bản ghi: <strong th:text="${totalItems}">0</strong>
-            </div>
-            
-            <div class="pagination-wrapper" th:if="${totalPages > 1}">
-                <ul class="pagination" style="display: flex; list-style: none; gap: 5px; padding: 0; margin: 0;">
-                    <!-- Previous Page -->
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="${currentPage == 0} ? '#' : @{/admin/schedules(page=${currentPage - 1}, doctorId=${doctorId}, sortBy=${sortBy}, sortDir=${sortDir})}"
-                           th:onclick="${currentPage == 0} ? 'return false;' : null"
-                           style="padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;">Trước</a>
-                    </li>
-                    
-                    <!-- Page Numbers -->
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
-                        <a class="page-link" th:href="@{/admin/schedules(page=${i}, doctorId=${doctorId}, sortBy=${sortBy}, sortDir=${sortDir})}" th:text="${i + 1}"
-                           th:style="${currentPage == i} ? 'padding: 6px 12px; border: 1px solid #007bff; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 4px;' : 'padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;'">1</a>
-                    </li>
-                    
-                    <!-- Next Page -->
-                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="${currentPage == totalPages - 1} ? '#' : @{/admin/schedules(page=${currentPage + 1}, doctorId=${doctorId}, sortBy=${sortBy}, sortDir=${sortDir})}"
-                           th:onclick="${currentPage == totalPages - 1} ? 'return false;' : null"
-                           style="padding: 6px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; color: inherit;">Sau</a>
-                    </li>
-                </ul>
-            </div>
+        <!-- 7. Chú thích màu ở cuối trang -->
+        <div style="margin-top: 15px; font-size: 13px; color: #666; display: flex; gap: 20px; align-items: center;">
+            <span>Chú thích:</span>
+            <span><span style="display:inline-block;width:14px;height:14px;background-color:#cce5ff;border-radius:3px;vertical-align:middle;"></span> Ca sáng</span>
+            <span><span style="display:inline-block;width:14px;height:14px;background-color:#fff3cd;border-radius:3px;vertical-align:middle;"></span> Ca chiều</span>
+            <span><span style="display:inline-block;width:14px;height:14px;background-color:#d4edda;border-radius:3px;vertical-align:middle;"></span> Cả ngày</span>
         </div>
     </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let draggedCell = null;
+
+    document.querySelectorAll('.schedule-cell[draggable="true"]').forEach(function (cell) {
+        cell.addEventListener('dragstart', function () {
+            draggedCell = cell;
+        });
+    });
+
+    document.querySelectorAll('td[data-doctor-id]').forEach(function (td) {
+        td.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+        td.addEventListener('drop', function (e) {
+            e.preventDefault();
+            if (!draggedCell) return;
+
+            const sourceTd = draggedCell.closest('td');
+            const targetTd = td;
+
+            const sourceDoctorId = sourceTd.getAttribute('data-doctor-id');
+            const sourceDate = sourceTd.getAttribute('data-date');
+            const targetDoctorId = targetTd.getAttribute('data-doctor-id');
+            const targetDate = targetTd.getAttribute('data-date');
+
+            if (sourceDoctorId === targetDoctorId && sourceDate === targetDate) {
+                draggedCell = null;
+                return;
+            }
+            if (!confirm('Xác nhận di chuyển lịch làm việc sang vị trí mới?')) {
+                draggedCell = null;
+                return;
+            }
+
+            const csrfMeta = document.querySelector('meta[name="_csrf"]');
+            const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+            const headers = { 'Content-Type': 'application/json' };
+            if (csrfMeta && csrfHeaderMeta) {
+                headers[csrfHeaderMeta.getAttribute('content')] = csrfMeta.getAttribute('content');
+            }
+
+            fetch('/admin/schedules/move', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    sourceDoctorId: sourceDoctorId,
+                    sourceDate: sourceDate,
+                    targetDoctorId: targetDoctorId,
+                    targetDate: targetDate
+                })
+            })
+            .then(function (res) {
+                return res.json().then(function(data) {
+                    return { ok: res.ok, status: res.status, data: data };
+                }).catch(function() {
+                    return { ok: res.ok, status: res.status, data: null };
+                });
+            })
+            .then(function (result) {
+                if (result.ok && result.data && result.data.success) {
+                    alert(result.data.message);
+                    window.location.reload();
+                } else if (result.data && result.data.message) {
+                    alert('Không thể di chuyển: ' + result.data.message);
+                } else {
+                    alert('Không thể di chuyển (Mã lỗi ' + result.status + '). Vui lòng thử lại.');
+                }
+            })
+            .catch(function (err) {
+                alert('Có lỗi xảy ra khi di chuyển lịch làm việc.');
+            });
+
+            draggedCell = null;
+        });
+    });
+});
+</script>
 </main>
 
 </body>

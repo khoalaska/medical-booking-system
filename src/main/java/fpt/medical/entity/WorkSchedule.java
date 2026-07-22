@@ -31,6 +31,10 @@ public class WorkSchedule {
     @Builder.Default
     private boolean available = true;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean published = false;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     @Builder.Default

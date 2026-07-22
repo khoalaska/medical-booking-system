@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main-layout}"
+      th:with="activeMenu='schedules'">
+<head>
+    <title>Tự động phân lịch làm việc</title>
+</head>
+<body>
+
+<main class="page-content" layout:fragment="content">
+    <div class="card" style="max-width: 700px; margin: 0 auto; padding: 20px;">
+        
+        <!-- Link Quay lại -->
+        <div style="margin-bottom: 15px;">
+            <a th:href="@{/admin/schedules}" style="text-decoration: none; color: #007bff; font-weight: bold; display: inline-flex; align-items: center; gap: 5px;">
+                &larr; Quay lại danh sách lịch làm việc
+            </a>
+        </div>
+
+        <h2 style="margin-bottom: 20px;">Tự động phân lịch làm việc</h2>
+
+        <!-- Box Giải thích quy tắc -->
+        <div class="context-box" style="background-color: #f8f9fa; border: 1px solid #e3e6f0; border-radius: 4px; padding: 15px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; color: #555;">
+            Hệ thống sẽ tự động tạo lịch làm việc (dạng bản nháp) cho các bác sĩ thuộc khoa đã chọn, lấp vào những ngày họ chưa có lịch trong khoảng thời gian chọn. Quy tắc: mỗi bác sĩ làm 4-5 ngày/tuần, tối đa 2 ngày liên tiếp làm cả ngày (sáng+chiều), bỏ qua Thứ 7 và Chủ nhật, đảm bảo mỗi ca/ngày có ít nhất 1 bác sĩ trực. Lịch tạo ra ở dạng bản nháp, cần vào trang danh sách để công bố sau khi kiểm tra.
+        </div>
+
+        <!-- Alert Error Message nếu có -->
+        <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}" style="margin-bottom: 20px; color: red;">
+            Đã xảy ra lỗi.
+        </div>
+
+        <!-- Form Tự động phân lịch -->
+        <form th:action="@{/admin/schedules/auto-assign}" method="post">
+            
+            <!-- Chọn Khoa -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="departmentId" style="display: block; font-weight: bold; margin-bottom: 5px;">Khoa *</label>
+                <select id="departmentId" name="departmentId" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required>
+                    <option value="" disabled selected>-- Chọn khoa --</option>
+                    <option th:each="dept : ${departments}" 
+                            th:value="${dept.id}" 
+                            th:text="${dept.name}"></option>
+                </select>
+            </div>
+
+            <!-- Từ ngày -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="fromDate" style="display: block; font-weight: bold; margin-bottom: 5px;">Từ ngày *</label>
+                <input type="date" id="fromDate" name="fromDate" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+            </div>
+
+            <!-- Đến ngày -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="toDate" style="display: block; font-weight: bold; margin-bottom: 5px;">Đến ngày *</label>
+                <input type="date" id="toDate" name="toDate" class="form-control" style="width: 100%; padding: 8px; box-sizing: border-box;" required />
+            </div>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận chạy tự động phân lịch? Thao tác này sẽ tạo nhiều lịch làm việc mới (dạng bản nháp) cho khoa đã chọn.')">Chạy tự động phân lịch</button>
+                <a th:href="@{/admin/schedules}" class="btn btn-secondary" style="padding: 8px 12px; border: 1px solid #ccc; text-decoration: none; border-radius: 4px; display: inline-block; color: inherit; box-sizing: border-box;">Hủy</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+</body>
+</html>

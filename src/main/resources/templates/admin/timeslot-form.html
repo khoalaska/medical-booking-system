@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/admin-layout}"
+      layout:decorate="~{layouts/main-layout}"
       th:with="activeMenu='schedules'">
 <head>
     <title th:text="${pageTitle}">Thêm/Sửa Khung giờ</title>
@@ -27,7 +27,6 @@
                     <span th:switch="${schedule.shift.name()}">
                         <span th:case="'MORNING'">Ca sáng</span>
                         <span th:case="'AFTERNOON'">Ca chiều</span>
-                        <span th:case="'EVENING'">Ca tối</span>
                         <span th:case="*">Chưa rõ</span>
                     </span>
                 </strong>

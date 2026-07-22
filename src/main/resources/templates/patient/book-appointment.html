@@ -109,8 +109,8 @@
                            th:each="schedule : ${availableShifts}"
                            th:classappend="${selectedShift != null && selectedShift == schedule.shift} ? 'selected'"
                            th:href="@{/patients/book-appointment(departmentId=${selectedDepartment.id}, doctorId=${selectedDoctor.id}, appointmentDate=${appointmentDate}, shift=${schedule.shift})}">
-                            <strong th:text="${schedule.shift == T(fpt.medical.enums.ShiftType).MORNING ? 'Ca sáng' : (schedule.shift == T(fpt.medical.enums.ShiftType).AFTERNOON ? 'Ca chiều' : 'Ca tối')}">Ca sáng</strong>
-                            <span th:text="${schedule.shift == T(fpt.medical.enums.ShiftType).MORNING ? '08:00 - 11:00' : (schedule.shift == T(fpt.medical.enums.ShiftType).AFTERNOON ? '14:00 - 17:00' : '18:00 - 20:00')}">08:00 - 11:00</span>
+                            <strong th:text="${schedule.shift == T(fpt.medical.enums.ShiftType).MORNING ? 'Ca sáng' : 'Ca chiều'}">Ca sáng</strong>
+                            <span th:text="${schedule.shift == T(fpt.medical.enums.ShiftType).MORNING ? '08:00 - 11:00' : '14:00 - 17:00'}">08:00 - 11:00</span>
                         </a>
                     </div>
                 </div>
