@@ -48,4 +48,15 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
             "WHERE mr.patient.id = :patientId " +
             "ORDER BY mr.createdAt DESC")
     List<MedicalRecord> findHistory(@Param("patientId") Long patientId);
+
+    @Query("SELECT DISTINCT mr FROM MedicalRecord mr " +
+            "LEFT JOIN FETCH mr.prescriptions " +
+            "JOIN FETCH mr.appointment a " +
+            "JOIN FETCH a.timeSlot ts " +
+            "JOIN FETCH ts.workSchedule " +
+            "JOIN FETCH mr.doctor doc " +
+            "JOIN FETCH doc.user " +
+            "WHERE mr.patient.user.id = :userId " +
+            "ORDER BY mr.createdAt DESC")
+    List<MedicalRecord> findPatientHistory(@Param("userId") Long userId);
 }

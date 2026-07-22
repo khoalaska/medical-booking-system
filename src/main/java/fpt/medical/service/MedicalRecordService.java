@@ -27,6 +27,8 @@ public interface MedicalRecordService {
     // Get the full examination history of a patient (records from every doctor), newest first
     List<MedicalRecord> getHistory(Long patientId);
 
+    List<MedicalRecord> getPatientHistory(Long userId);
+
     // Get one patient by id (used for the patient history page header)
     Patient getPatientById(Long patientId);
 

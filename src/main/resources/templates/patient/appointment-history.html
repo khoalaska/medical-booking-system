@@ -1,10 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/public-layout}"
+      lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Lịch khám của tôi</title>
 </head>
 <body>
+
+<main layout:fragment="content" class="appointment-history-page">
+    <div class="appointment-history-container">
+        <div class="appointment-history-header">
+            <div>
+                <h1>Lịch khám của tôi</h1>
+                <p>Theo dõi và quản lý các lịch khám bạn đã đặt.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/patients/book-appointment}">+ Đặt lịch mới</a>
+        </div>
+
+        <div class="booking-message success" th:if="${successMessage}" th:text="${successMessage}"></div>
+        <div class="booking-message error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+        <div class="appointment-empty" th:if="${#lists.isEmpty(appointments)}">
+            <h2>Chưa có lịch khám</h2>
+            <p>Không có lịch khám phù hợp với trạng thái đã chọn.</p>
+            <a class="btn btn-primary" th:href="@{/patients/book-appointment}">Đặt lịch khám</a>
+        </div>
+
+        <div class="appointment-list" th:if="${!#lists.isEmpty(appointments)}">
+            <article class="appointment-card" th:each="appointment : ${appointments}">
+                <div class="appointment-date-box">
+                    <strong th:text="${#temporals.format(appointment.timeSlot.workSchedule.workDate, 'dd')}">24</strong>
+                    <span th:text="${#temporals.format(appointment.timeSlot.workSchedule.workDate, 'MM/yyyy')}">07/2026</span>
+                </div>
+
+                <div class="appointment-information">
+                    <div class="appointment-card-title">
+                        <div>
+                            <h2 th:text="${appointment.doctor.user.fullName}">BS. Nguyễn Văn An</h2>
+                            <p th:text="${appointment.doctor.department.name + ' · ' + appointment.doctor.specialization}">
+                                Khoa Nội · Nội tổng quát
+                            </p>
+                        </div>
+                        <span class="appointment-status"
+                              th:classappend="${#strings.toLowerCase(appointment.status.name())}"
+                              th:text="${appointment.status == T(fpt.medical.enums.AppointmentStatus).PENDING ? 'Chờ xác nhận' :
+                                        (appointment.status == T(fpt.medical.enums.AppointmentStatus).CONFIRMED ? 'Đã xác nhận' :
+                                        (appointment.status == T(fpt.medical.enums.AppointmentStatus).CANCELLED ? 'Đã hủy' : 'Đã khám'))}">
+                        </span>
+                    </div>
+
+                    <div class="appointment-meta">
+                        <span>Ngày <strong th:text="${#temporals.format(appointment.timeSlot.workSchedule.workDate, 'dd/MM/yyyy')}">24/07/2026</strong></span>
+                        <span>Giờ <strong th:text="${#temporals.format(appointment.timeSlot.startTime, 'HH:mm') + ' - ' + #temporals.format(appointment.timeSlot.endTime, 'HH:mm')}">08:00 - 09:00</strong></span>
+                        <span>Mã lịch <strong th:text="${'#' + appointment.id}">#1</strong></span>
+                    </div>
+
+                    <p class="appointment-notes" th:if="${appointment.notes != null && !appointment.notes.isBlank()}">
+                        <strong>Ghi chú:</strong> <span th:text="${appointment.notes}"></span>
+                    </p>
+
+                    <div class="appointment-actions"
+                         th:if="${(appointment.status == T(fpt.medical.enums.AppointmentStatus).PENDING ||
+                                  appointment.status == T(fpt.medical.enums.AppointmentStatus).CONFIRMED) &&
+                                  !appointment.timeSlot.workSchedule.workDate.isBefore(T(java.time.LocalDate).now())}">
+                        <form th:action="@{/patients/appointments/{id}/cancel(id=${appointment.id})}" method="post"
+                              onsubmit="return confirm('Bạn có chắc muốn hủy lịch khám này?')">
+                            <button type="submit" class="appointment-cancel-button">Hủy lịch</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+    </div>
+</main>
 
 </body>
 </html>

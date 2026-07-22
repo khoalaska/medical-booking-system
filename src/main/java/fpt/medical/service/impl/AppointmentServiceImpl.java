@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -74,6 +75,43 @@ public class AppointmentServiceImpl implements AppointmentService {
             return null;
         }
         return notes.trim();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Appointment> getPatientAppointments(Long userId) {
+        return appointmentRepository.findPatientAppointments(userId);
+    }
+
+    @Override
+    public void cancelPatientAppointment(Long userId, Long appointmentId) {
+        Appointment appointment = appointmentRepository
+                .findPatientAppointment(appointmentId, userId);
+        if (appointment == null) {
+            throw new ResourceNotFoundException("Không tìm thấy lịch khám của bạn.");
+        }
+
+        if (appointment.getStatus() != AppointmentStatus.PENDING
+                && appointment.getStatus() != AppointmentStatus.CONFIRMED) {
+            throw new IllegalArgumentException("Lịch khám này không thể hủy.");
+        }
+
+        TimeSlot timeSlot = timeSlotRepository
+                .findByIdForBooking(appointment.getTimeSlot().getId());
+        LocalDateTime appointmentTime = LocalDateTime.of(
+                timeSlot.getWorkSchedule().getWorkDate(), timeSlot.getStartTime());
+        if (!appointmentTime.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Không thể hủy lịch đã bắt đầu hoặc đã qua.");
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        timeSlot.setBookedCapacity(Math.max(timeSlot.getBookedCapacity() - 1, 0));
+        if (timeSlot.getBookedCapacity() < timeSlot.getMaxCapacity()) {
+            timeSlot.setStatus("AVAILABLE");
+        }
+
+        timeSlotRepository.save(timeSlot);
+        appointmentRepository.save(appointment);
     }
 
     // Return today's upcoming (not yet examined) appointments: status PENDING or CONFIRMED

@@ -1,6 +1,7 @@
 package fpt.medical.controller;
 
 import fpt.medical.dto.UserProfileDTO;
+import fpt.medical.entity.Appointment;
 import fpt.medical.entity.Department;
 import fpt.medical.entity.Doctor;
 import fpt.medical.entity.TimeSlot;
@@ -10,6 +11,7 @@ import fpt.medical.security.CustomUserDetails;
 import fpt.medical.service.AppointmentService;
 import fpt.medical.service.DepartmentService;
 import fpt.medical.service.DoctorService;
+import fpt.medical.service.MedicalRecordService;
 import fpt.medical.service.UserService;
 import fpt.medical.service.WorkScheduleService;
 import jakarta.validation.Valid;
@@ -22,6 +24,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,6 +43,7 @@ public class PatientController {
     private final WorkScheduleService workScheduleService;
     private final UserService userService;
     private final AppointmentService appointmentService;
+    private final MedicalRecordService medicalRecordService;
 
     @GetMapping("/book-appointment")
     public String bookAppointment(
@@ -104,6 +108,46 @@ public class PatientController {
         }
 
         return "redirect:/patients/book-appointment";
+    }
+
+    @GetMapping("/appointments")
+    public String appointmentHistory(
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            Model model) {
+
+        model.addAttribute("appointments",
+                appointmentService.getPatientAppointments(
+                        currentUser.getUser().getId()));
+        return "patient/appointment-history";
+    }
+
+    @PostMapping("/appointments/{appointmentId}/cancel")
+    public String cancelAppointment(
+            @PathVariable Long appointmentId,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            appointmentService.cancelPatientAppointment(
+                    currentUser.getUser().getId(), appointmentId);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage", "Hủy lịch khám thành công.");
+        } catch (IllegalArgumentException | ResourceNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        return "redirect:/patients/appointments";
+    }
+
+    @GetMapping("/medical-records")
+    public String medicalRecords(
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            Model model) {
+
+        model.addAttribute("records",
+                medicalRecordService.getPatientHistory(
+                        currentUser.getUser().getId()));
+        return "patient/medical-records";
     }
 
     @GetMapping("/doctors")

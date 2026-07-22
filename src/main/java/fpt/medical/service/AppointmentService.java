@@ -10,6 +10,10 @@ public interface AppointmentService {
 
     Appointment bookAppointment(Long userId, Long timeSlotId, String notes);
 
+    List<Appointment> getPatientAppointments(Long userId);
+
+    void cancelPatientAppointment(Long userId, Long appointmentId);
+
     // Get today's upcoming (not yet examined) appointments for the dashboard preview
     List<Appointment> getUpcomingTodayAppointments(Long doctorId);
 

@@ -210,6 +210,12 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         return medicalRecordRepository.findHistory(patientId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<MedicalRecord> getPatientHistory(Long userId) {
+        return medicalRecordRepository.findPatientHistory(userId);
+    }
+
     // Return one patient by id, or report a clear "not found" error
     @Override
     @Transactional(readOnly = true)

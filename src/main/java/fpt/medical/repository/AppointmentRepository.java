@@ -15,6 +15,24 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     boolean existsByPatientIdAndTimeSlotIdAndStatusNot(
             Long patientId, Long timeSlotId, AppointmentStatus status);
 
+    @Query("SELECT a FROM Appointment a " +
+            "JOIN FETCH a.doctor d " +
+            "JOIN FETCH d.user " +
+            "JOIN FETCH d.department " +
+            "JOIN FETCH a.timeSlot ts " +
+            "JOIN FETCH ts.workSchedule ws " +
+            "WHERE a.patient.user.id = :userId " +
+            "ORDER BY ws.workDate DESC, ts.startTime DESC")
+    List<Appointment> findPatientAppointments(@Param("userId") Long userId);
+
+    @Query("SELECT a FROM Appointment a " +
+            "JOIN FETCH a.timeSlot ts " +
+            "JOIN FETCH ts.workSchedule " +
+            "WHERE a.id = :appointmentId AND a.patient.user.id = :userId")
+    Appointment findPatientAppointment(
+            @Param("appointmentId") Long appointmentId,
+            @Param("userId") Long userId);
+
     //Khoa
     @Query("SELECT a FROM Appointment a " +
             "JOIN FETCH a.patient p " +

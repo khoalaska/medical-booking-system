@@ -1,10 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/public-layout}"
+      lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Hồ sơ sức khỏe</title>
 </head>
 <body>
+
+<main layout:fragment="content" class="health-record-page">
+    <div class="health-record-container">
+        <div class="health-record-header">
+            <div>
+                <h1>Hồ sơ sức khỏe</h1>
+                <p>Kết quả khám, chẩn đoán và đơn thuốc do bác sĩ cập nhật.</p>
+            </div>
+            <a class="btn btn-secondary" th:href="@{/}">← Trang chủ</a>
+        </div>
+
+        <div class="health-record-empty" th:if="${#lists.isEmpty(records)}">
+            <h2>Chưa có hồ sơ khám bệnh</h2>
+            <p>Hồ sơ sẽ xuất hiện sau khi bác sĩ hoàn tất chẩn đoán.</p>
+            <a class="btn btn-primary" th:href="@{/patients/book-appointment}">Đặt lịch khám</a>
+        </div>
+
+        <div class="health-record-list" th:if="${!#lists.isEmpty(records)}">
+            <article class="health-record-card" th:each="record : ${records}">
+                <div class="health-record-card-header">
+                    <div>
+                        <span class="health-record-date"
+                              th:text="${#temporals.format(record.appointment.timeSlot.workSchedule.workDate, 'dd/MM/yyyy')}">
+                            24/07/2026
+                        </span>
+                        <h2 th:text="${record.doctor.user.fullName}">BS. Nguyễn Văn An</h2>
+                        <p th:text="${record.doctor.specialization}">Nội tổng quát</p>
+                    </div>
+                    <span class="health-record-code" th:text="${'Hồ sơ #' + record.id}">Hồ sơ #1</span>
+                </div>
+
+                <div class="health-record-details">
+                    <section>
+                        <h3>Chẩn đoán</h3>
+                        <p th:text="${record.diagnosis}">Kết quả chẩn đoán</p>
+                    </section>
+                    <section>
+                        <h3>Hướng điều trị</h3>
+                        <p th:text="${record.treatment != null && !record.treatment.isBlank() ? record.treatment : 'Không có'}">
+                            Không có
+                        </p>
+                    </section>
+                    <section th:if="${record.notes != null && !record.notes.isBlank()}">
+                        <h3>Ghi chú của bác sĩ</h3>
+                        <p th:text="${record.notes}"></p>
+                    </section>
+                </div>
+
+                <div class="health-prescription">
+                    <h3>Đơn thuốc</h3>
+                    <p class="health-no-prescription"
+                       th:if="${record.prescriptions == null || #lists.isEmpty(record.prescriptions)}">
+                        Không có đơn thuốc.
+                    </p>
+
+                    <div class="health-prescription-table"
+                         th:if="${record.prescriptions != null && !#lists.isEmpty(record.prescriptions)}">
+                        <div class="health-prescription-row health-prescription-heading">
+                            <span>Tên thuốc</span>
+                            <span>Liều dùng</span>
+                            <span>Số ngày</span>
+                            <span>Hướng dẫn</span>
+                        </div>
+                        <div class="health-prescription-row" th:each="prescription : ${record.prescriptions}">
+                            <strong th:text="${prescription.medicineName}">Paracetamol</strong>
+                            <span th:text="${prescription.dosage}">1 viên/lần</span>
+                            <span th:text="${prescription.durationDays != null ? prescription.durationDays + ' ngày' : '-'}">3 ngày</span>
+                            <span th:text="${prescription.instructions != null && !prescription.instructions.isBlank() ? prescription.instructions : '-'}">Sau ăn</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</main>
 
 </body>
 </html>
